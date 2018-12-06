@@ -13,6 +13,11 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['namespace' => 'Api'], function () {
+    
+    Route::group(['middleware' => 'jwt.auth'], function () {
+        Route::post('/device-token', ['uses' => 'UsersController@deviceToken', 'as' => 'api.user.postToken']);
+        Route::delete('/device-token', ['uses' => 'UsersController@deviceTokenDelete', 'as' => 'api.user.deleteToken']);
+    });
+
 });
