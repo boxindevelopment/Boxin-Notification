@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\UserDevice;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Mail;
 use Validator;
 use DB;
@@ -25,26 +24,25 @@ class UserDeviceController extends Controller
 
     public function deviceToken(Request $request)
     {
-        $users = JWTAuth::parseToken()->authenticate();
+        $users = $request->user();
 
         try {
 
             $request->validate([
                 'token' => 'required',
+                'device' => 'required',
             ]);
 
             $device = UserDevice::where('user_id', $users->id)->where('token', $request->token)->count();
-            if($device > 0){
-                  return response()->json([
-                      'message' => 'Device token has been created'
-                  ], 200);
+            if($device < 1){
+                $device = UserDevice::create(['user_id' => $users->id,
+                                              'token' => $request->input('token'),
+                                              'device' => $request->input('device')]);
             }
-
-            $userToken = UserDevice::create(['user_id' => $users->id, 'token' => $request->input('token')]);
 
             return response()->json([
                 'message' => 'Device success creaeted',
-                'data' => $userToken
+                'data' => $device
             ], 200);
 
         } catch (ValidatorException $e) {
