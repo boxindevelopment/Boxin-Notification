@@ -14,10 +14,10 @@ use Illuminate\Http\Request;
 */
 
 Route::group(['namespace' => 'Api'], function () {
-    
+
 	Route::prefix('user')->middleware('auth:api')->group(function() {
-        Route::post('/device-token', ['uses' => 'UsersController@deviceToken', 'as' => 'api.user.postToken']);
-        Route::delete('/device-token', ['uses' => 'UsersController@deviceTokenDelete', 'as' => 'api.user.deleteToken']);
+        Route::post('/device-token', ['uses' => 'UserDeviceController@deviceToken', 'as' => 'api.user_device.postToken']);
+        Route::delete('/device-token', ['uses' => 'UserDeviceController@deviceTokenDelete', 'as' => 'api.user_device.deleteToken']);
     });
 
 });
