@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Api;
 
 use Auth;
 use DB;
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Jobs\Notif\ConfirmPayment;
 use Illuminate\Http\Request;
@@ -21,8 +22,10 @@ class NotificationController extends Controller {
 	 * @param  \Illuminate\Http\Request  $request
 	 * @return \Illuminate\Http\Response
 	 */
-	public function confirmPayment(Request $request)
+	public function confirmPayment(Request $request, $user_id)
 	{
-        ConfirmPayment::dispatch($request->user, 'approved')->onQueue('processing');
+        $token = ConfirmPayment::dispatch($user_id, 'approved')->onQueue('processing');
+		return response()->json($token, 200);
+
 	}
 }

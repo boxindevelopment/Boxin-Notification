@@ -24,7 +24,7 @@ Route::group(['namespace' => 'Api'], function () {
         Route::delete('/device-token', ['uses' => 'UserDeviceController@deviceTokenDelete', 'as' => 'api.user_device.deleteToken']);
     });
 
-    Route::post('/confirm-payment', ['uses' => 'NotificationController@confirmPayment', 'as' => 'api.notification.confirmPayment']);
+    Route::post('/confirm-payment/{user_id}', ['uses' => 'NotificationController@confirmPayment', 'as' => 'api.notification.confirmPayment']);
     Route::post('/delivery/approved', ['uses' => 'NotificationController@DeliveryApproved', 'as' => 'api.notification.DeliveryApproved']);
     Route::post('/pickup/approved', ['uses' => 'NotificationController@pickupApproved', 'as' => 'api.notification.pickupApproved']);
     Route::post('/item-save', ['uses' => 'NotificationController@itemSave', 'as' => 'api.notification.itemSave']);

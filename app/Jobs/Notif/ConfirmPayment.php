@@ -11,21 +11,18 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use OneSignal;
+use Log;
 
 class ConfirmPayment implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * User model instance.
-     *
-     * @var User
-     */
-    protected $user;
+    protected $user_id;
+    protected $status;
 
-    public function __construct(User $user, $status)
+    public function __construct($user_id, $status)
     {
-        $this->user = $user;
+        $this->user_id = $user_id;
         $this->status = $status;
     }
 
@@ -36,7 +33,9 @@ class ConfirmPayment implements ShouldQueue
      */
     public function handle()
     {
-            $userDevices = UserDevice::where('user_id', $this->user->id)->get();
+
+            $user = User::find($this->user_id);
+            $userDevices = UserDevice::where('user_id', $user->id)->get();
             $title = 'YOur payment has been ' . $this->status;
             $params = [];
             $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
@@ -47,10 +46,15 @@ class ConfirmPayment implements ShouldQueue
 
             $dataNotif['type'] = 'confirm payment ' . $this->status;
             $dataNotif['title'] = $title;
+            $dataNotif['user_id'] = $user->id;
             $dataNotif['notifiable_type'] = 'user';
-            $dataNotif['notifiable_id'] = $this->user->id;
+            $dataNotif['notifiable_id'] = $user->id;
             $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title] ]);
             Notification::create($dataNotif);
+            \Log::info('Send Notif success');
+            \Log::info('Token:' . $userDevices->pluck('token'));
+
+            return $userDevices->pluck('token');
 
     }
 }
