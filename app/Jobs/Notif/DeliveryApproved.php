@@ -3,7 +3,6 @@
 namespace App\Jobs\Notif;
 
 use App\Models\Notification;
-use App\Models\User;
 use App\Models\UserDevice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -13,17 +12,15 @@ use Illuminate\Queue\SerializesModels;
 use Log;
 use OneSignal;
 
-class ConfirmPayment implements ShouldQueue
+class DeliveryApproved implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $user_id;
-    protected $status;
 
-    public function __construct($user_id, $status)
+    public function __construct($user_id)
     {
         $this->user_id = $user_id;
-        $this->status = $status;
     }
 
     /**
@@ -34,25 +31,24 @@ class ConfirmPayment implements ShouldQueue
     public function handle()
     {
 
-            $user = User::find($this->user_id);
-            $userDevices = UserDevice::where('user_id', $user->id)->get();
-            $title = 'Your payment has been ' . $this->status;
+            $userDevices = UserDevice::where('user_id', $this->user_id)->get();
+            $title = "Don't forget to prepare your items!&#013;Our courier will come tomorrow";
             $params = [];
             $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
             $params['contents'] = ["en" => $title];
-            $params['headings'] = ["en" => "Boxin Notification confirm payment"];
-            $params['data'] = json_decode(json_encode(['type' => 'confirm-payment-' . $this->status,'detail' => ['message' => $title] ]));
+            $params['headings'] = ["en" => $title];
+            $params['data'] = json_decode(json_encode(['type' => 'delivery-approved','detail' => ['message' => $title] ]));
             OneSignal::sendNotificationCustom($params);
 
-            $dataNotif['type'] = 'confirm payment ' . $this->status;
+            $dataNotif['type'] = 'delivery approved';
             $dataNotif['title'] = $title;
-            $dataNotif['user_id'] = $user->id;
+            $dataNotif['user_id'] = $this->user_id;
             $dataNotif['notifiable_type'] = 'user';
-            $dataNotif['notifiable_id'] = $user->id;
+            $dataNotif['notifiable_id'] = $this->user_id;
             $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title] ]);
-            $notification = Notification::create($dataNotif);
+            Notification::create($dataNotif);
 
-            return $notification;
+            return $userDevices->pluck('token');
 
     }
 }
