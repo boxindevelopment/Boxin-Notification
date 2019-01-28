@@ -35,24 +35,28 @@ class ConfirmPayment implements ShouldQueue
     {
 
         $user = User::find($this->user_id);
-        $userDevices = UserDevice::where('user_id', $user->id)->get();
-        $title = 'Your payment has been ' . $this->status;
-        $params = [];
-        $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
-        $params['contents'] = ["en" => $title];
-        $params['headings'] = ["en" => "Boxin Notification confirm payment"];
-        $params['data'] = json_decode(json_encode(['type' => 'confirm-payment-' . $this->status,'detail' => ['message' => $title] ]));
-        OneSignal::sendNotificationCustom($params);
+        if($user){
+            $userDevices = UserDevice::where('user_id', $user->id)->get();
+            $title = 'Your payment has been ' . $this->status;
+            $params = [];
+            $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
+            $params['contents'] = ["en" => $title];
+            $params['headings'] = ["en" => "Boxin Notification confirm payment"];
+            $params['data'] = json_decode(json_encode(['type' => 'confirm-payment-' . $this->status,'detail' => ['message' => $title] ]));
+            OneSignal::sendNotificationCustom($params);
 
-        $dataNotif['type'] = 'confirm payment ' . $this->status;
-        $dataNotif['title'] = $title;
-        $dataNotif['user_id'] = $user->id;
-        $dataNotif['notifiable_type'] = 'user';
-        $dataNotif['notifiable_id'] = $user->id;
-        $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title] ]);
-        $notification = Notification::create($dataNotif);
+            $dataNotif['type'] = 'confirm payment ' . $this->status;
+            $dataNotif['title'] = $title;
+            $dataNotif['user_id'] = $user->id;
+            $dataNotif['notifiable_type'] = 'user';
+            $dataNotif['notifiable_id'] = $user->id;
+            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title] ]);
+            $notification = Notification::create($dataNotif);
 
-        return $notification;
+            return $notification;
+        } else {
+            return false;
+        }
 
     }
 }

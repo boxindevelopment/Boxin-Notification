@@ -25,8 +25,8 @@ class NotificationConfirmController extends Controller {
 	public function confirmPayment(Request $request, $user_id)
 	{
 		$status = ($request->status_id == 7) ? 'approved' : 'rejected';
-        ConfirmPayment::dispatch($user_id, $status)->onQueue('processing');
-		return response()->json(['status' => 'success', 'message' => 'Your payment has been approved'], 200);
+        $confirm = ConfirmPayment::dispatch($user_id, $status)->onQueue('processing');
+		return response()->json(['status' => 'success', 'message' => 'Your payment has been ' . $status], 200);
 
 	}
 }
