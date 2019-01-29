@@ -27,7 +27,6 @@ class NotificationConfirmController extends Controller {
 	public function confirmPayment(Request $request, $user_id)
 	{
 
-
         $validator = \Validator::make($request->all(), [
             'status_id'   		=> 'required',
             'order_detail_id'   => 'required',
