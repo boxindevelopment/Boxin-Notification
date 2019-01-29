@@ -18,11 +18,13 @@ class ItemSave implements ShouldQueue
 
     protected $user_id;
     protected $title;
+    protected $data;
 
-    public function __construct($user_id, $title)
+    public function __construct($user_id, $title, $data)
     {
-        $this->user_id = $user_id;
-        $this->title = $title;
+        $this->user_id  = $user_id;
+        $this->title    = $title;
+        $this->data     = $data;
     }
 
     /**
@@ -38,7 +40,7 @@ class ItemSave implements ShouldQueue
             $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
             $params['contents'] = ["en" => $this->title];
             $params['headings'] = ["en" => $this->title];
-            $params['data'] = json_decode(json_encode(['type' => 'item-save','detail' => ['message' => $this->title] ]));
+            $params['data'] = json_decode(json_encode(['type' => 'item-save','detail' => ['message' => $this->title, 'data' => $this->data] ]));
             OneSignal::sendNotificationCustom($params);
 
             $dataNotif['type'] = 'item save';
@@ -48,8 +50,6 @@ class ItemSave implements ShouldQueue
             $dataNotif['notifiable_id'] = $this->user_id;
             $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title] ]);
             Notification::create($dataNotif);
-            \Log::info('Send Notif success');
-            \Log::info('Token:' . $userDevices->pluck('token'));
 
             return $userDevices->pluck('token');
 
