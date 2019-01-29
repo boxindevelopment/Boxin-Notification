@@ -19,11 +19,13 @@ class ConfirmPayment implements ShouldQueue
 
     protected $user_id;
     protected $status;
+    protected $data;
 
-    public function __construct($user_id, $status)
+    public function __construct($user_id, $status, $data)
     {
         $this->user_id = $user_id;
         $this->status = $status;
+        $this->data = $data;
     }
 
     /**
@@ -42,8 +44,8 @@ class ConfirmPayment implements ShouldQueue
             $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
             $params['contents'] = ["en" => $title];
             $params['headings'] = ["en" => "Boxin Notification confirm payment"];
-            $params['data'] = json_decode(json_encode(['type' => 'confirm-payment-' . $this->status,'detail' => ['message' => $title] ]));
-            OneSignal::sendNotificationCustom($params);
+            $params['data'] = json_decode(json_encode(['type' => 'confirm-payment-' . $this->status,'detail' => ['message' => $title, 'data' => $this->data] ]));
+            $onesignal = OneSignal::sendNotificationCustom($params);
 
             $dataNotif['type'] = 'confirm payment ' . $this->status;
             $dataNotif['title'] = $title;

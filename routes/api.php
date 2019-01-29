@@ -24,18 +24,18 @@ Route::group(['namespace' => 'Api'], function () {
         Route::delete('/device-token', ['uses' => 'UserDeviceController@deviceTokenDelete', 'as' => 'api.user_device.deleteToken']);
     });
 
-    // Admin PaymentController function update status = 7 (Approved), 8 = (Rejected)
+    //1/2 Admin PaymentController function update status = 7 (Approved), 8 = (Rejected)
     Route::post('/confirm-payment/{user_id}', ['uses' => 'NotificationConfirmController@confirmPayment', 'as' => 'api.notification.confirm.payment']);
     Route::post('/delivery/approved/{user_id}', ['uses' => 'NotificationDeliveryApprovedController@deliveryApproved', 'as' => 'api.notification.delivery.approved']);
     Route::post('/pickup/approved/{user_id}', ['uses' => 'NotificationPickupApprovedController@pickupApproved', 'as' => 'api.notification.pickup.approved']);
-    // Admin PickupController function update status = 12
+    //5. Admin PickupController function update status = 12
     Route::post('/item-save/{user_id}', ['uses' => 'NotificationItemSaveController@itemSave', 'as' => 'api.notification.item.save']);
     Route::post('/item-stored/{user_id}', ['uses' => 'NotificationItemStoredController@itemStored', 'as' => 'api.notification.item.stored']);
-    // Admin PickupController function update status = 2
+    //4. Admin PickupController function update status = 2
     Route::post('/delivery/stored/{user_id}', ['uses' => 'NotificationDeliveryStoredController@deliveryStored', 'as' => 'api.notification.delivery.stored']);
     Route::post('/pickup/stored/{user_id}', ['uses' => 'NotificationPickupStoredController@pickupStored', 'as' => 'api.notification.pickup.stored']);
     Route::post('/return-request/{user_id}', ['uses' => 'NotificationReturnRequestController@returnRequest', 'as' => 'api.notification.return.request']);
-    // Admin ReturnBoxesController function update status = 12
+    //9. Admin ReturnBoxesController function update status = 12
     Route::post('/returned/{user_id}', ['uses' => 'NotificationReturnedController@returned', 'as' => 'api.notification.returned']);
 
 });
