@@ -22,6 +22,6 @@ class NotificationReturnRequestController extends Controller {
 	{
 		$title = "How do you want to take your items?&#013;pickup/delivery";
         ReturnRequest::dispatch($user_id, $title)->onQueue('processing');
-		return response()->json(['status' => 'success', 'message' => $title], 200);
+		return response()->json(['status' => 'success', 'message' => $title]);
 	}
 }

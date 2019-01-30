@@ -50,9 +50,10 @@ class ConfirmPayment implements ShouldQueue
             $dataNotif['type'] = 'confirm payment ' . $this->status;
             $dataNotif['title'] = $title;
             $dataNotif['user_id'] = $user->id;
+            $dataNotif['order_id'] = $this->data->order->id;
             $dataNotif['notifiable_type'] = 'user';
-            $dataNotif['notifiable_id'] = $user->id;
-            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title] ]);
+            $dataNotif['notifiable_id'] = $this->data->payment->id;
+            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title, 'data' => $this->data] ]);
             $notification = Notification::create($dataNotif);
 
             return $notification;
