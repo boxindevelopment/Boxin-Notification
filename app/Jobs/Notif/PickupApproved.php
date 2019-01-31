@@ -46,7 +46,7 @@ class PickupApproved implements ShouldQueue
             $dataNotif['user_id'] = $this->user_id;
             $dataNotif['notifiable_type'] = 'user';
             $dataNotif['notifiable_id'] = $this->user_id;
-            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title] ]);
+            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->data] ]);
             Notification::create($dataNotif);
 
             return $userDevices->pluck('token');
