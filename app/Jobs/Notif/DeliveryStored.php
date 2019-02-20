@@ -17,11 +17,13 @@ class DeliveryStored implements ShouldQueue
 
     protected $user_id;
     protected $title;
+    protected $data;
 
-    public function __construct($user_id, $title)
+    public function __construct($user_id, $title, $data)
     {
         $this->user_id = $user_id;
         $this->title = $title;
+        $this->data = $data;
     }
 
     /**
@@ -37,7 +39,7 @@ class DeliveryStored implements ShouldQueue
         $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
         $params['contents'] = ["en" => $this->title];
         $params['headings'] = ["en" => $this->title];
-        $params['data'] = json_decode(json_encode(['type' => 'delivery-stored','detail' => ['message' => $this->title] ]));
+        $params['data'] = json_decode(json_encode(['type' => 'delivery-stored','detail' => ['message' => $this->title, 'data' => $this->data] ]));
         OneSignal::sendNotificationCustom($params);
 
         $dataNotif['type'] = 'delivery stored';
@@ -45,7 +47,7 @@ class DeliveryStored implements ShouldQueue
         $dataNotif['user_id'] = $this->user_id;
         $dataNotif['notifiable_type'] = 'user';
         $dataNotif['notifiable_id'] = $this->user_id;
-        $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title] ]);
+        $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->data] ]);
         Notification::create($dataNotif);
 
         return $userDevices->pluck('token');
