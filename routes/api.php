@@ -37,6 +37,8 @@ Route::group(['namespace' => 'Api'], function () {
     Route::post('/pickup/stored/{user_id}', ['uses' => 'NotificationPickupStoredController@pickupStored', 'as' => 'api.notification.pickup.stored']);
     Route::post('/return-request/{user_id}', ['uses' => 'NotificationReturnRequestController@returnRequest', 'as' => 'api.notification.return.request']);
     //9. Admin ReturnBoxesController function update status = 12
-        Route::post('/returned/{user_id}', ['uses' => 'NotificationReturnedController@returned', 'as' => 'api.notification.returned']);
+    Route::post('/returned/{user_id}', ['uses' => 'NotificationReturnedController@returned', 'as' => 'api.notification.returned']);
+    
+    Route::get('/payment-email/{order_id}', ['uses' => 'NotificationEmailPaymentController@send_email', 'as' => 'api.notification.email.payment']);
 
 });
