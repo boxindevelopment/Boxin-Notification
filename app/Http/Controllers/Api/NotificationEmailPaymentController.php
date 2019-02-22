@@ -25,7 +25,7 @@ class NotificationEmailPaymentController extends Controller
         ]);
       }
       $title = 'Your purchase order.';
-      Mail::to($order->user->email)->send(new EmailPayment($order, 'Order Invoice'));
+      Mail::to($order->user->email)->send(new EmailPayment($order->id, 'Order Invoice'));
       return response()->json(['status' => 'success', 'message' => $title]);
     }
 }
