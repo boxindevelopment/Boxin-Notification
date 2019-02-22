@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Carbon\Carbon;
 
 class OrderDetailResource extends JsonResource
 {
@@ -153,26 +154,43 @@ class OrderDetailResource extends JsonResource
             'area'                      => $this->order->area->name,
         ];
 
+        $room_or_box = null;
+        if ($this->box) {
+          $room_or_box = [
+            'id'   => $this->box->code_box,
+            'name' => $this->box->name
+          ];
+        }
+
+        $show = true;
+        $tgl_sehari_sebelum = Carbon::parse($this->end_date);
+        $tgl_sehari_sebelum->addDays(-1);
+        if (Carbon::now()->gte($tgl_sehari_sebelum)){
+          $show = false;
+        }
+
         $data = [
-            'id'                        => $this->id,
-            'code'                      => $this->id_name,
-            'name'                      => $this->name,
-            'amount'                    => $this->amount,
-            'start_date'                => $this->start_date,
-            'end_date'                  => $this->end_date,
-            'status_id'                 => $this->status->id,
-            'status'                    => $this->status->name,
-            'types_of_box_room_id'      => $type_box_room,
-            'types_of_size'             => $type_size,
-            'order'                     => $order,
-            'location'                  => $location,
-            'duration'                  => $duration,
-            'pickup'                    => $pick_up,
-            'payment'                   => $payment,
-            'return_box'                => $return_box,
-            'return_box_payment'        => $return_box_payment,
-            'change_box'                => $change_box,
-            'change_box_payment'        => $change_box_payment,
+            'id'                   => $this->id,
+            'code'                 => $this->id_name,
+            'name'                 => $this->name,
+            'amount'               => $this->amount,
+            'start_date'           => $this->start_date,
+            'end_date'             => $this->end_date,
+            'show_button_extend'   => $show,
+            'room_or_box'          => $room_or_box,
+            'status_id'            => $this->status->id,
+            'status'               => $this->status->name,
+            'types_of_box_room_id' => $type_box_room,
+            'types_of_size'        => $type_size,
+            'order'                => $order,
+            'location'             => $location,
+            'duration'             => $duration,
+            'pickup'               => $pick_up,
+            'payment'              => $payment,
+            'return_box'           => $return_box,
+            'return_box_payment'   => $return_box_payment,
+            'change_box'           => $change_box,
+            'change_box_payment'   => $change_box_payment,
         ];
 
         return $data;
