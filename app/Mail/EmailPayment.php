@@ -6,21 +6,22 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Models\Order;
 
 class EmailPayment extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected $order;
+    protected $id;
     protected $sub;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($order, $sub)
+    public function __construct($id, $sub)
     {
-        $this->order  = $order;
+        $this->id  = $id;
         $this->sub = $sub;
     }
 
@@ -31,9 +32,10 @@ class EmailPayment extends Mailable
      */
     public function build()
     {
+        $order = Order::find($this->id);
         // return $this->view('view.name');
         return $this->markdown('email.invoice')
-                    ->subject($sub)
-                    ->with('order', $this->order);
+                    ->subject($this->sub)
+                    ->with('order', $order);
     }
 }
