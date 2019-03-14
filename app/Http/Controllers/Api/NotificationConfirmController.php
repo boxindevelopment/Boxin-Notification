@@ -48,8 +48,12 @@ class NotificationConfirmController extends Controller {
 
 			$status = ($request->status_id == 7) ? 'approved' : 'rejected';
 
-	        $confirm = ConfirmPayment::dispatch($user_id, $status, $data)->onQueue('processing');
-			return response()->json(['status' => 'success', 'message' => 'Your payment has been ' . $status], 200);
+      $confirm = ConfirmPayment::dispatch($user_id, $status, $data)->onQueue('processing');
+      if ($request->status_id == 7) {
+        return response()->json(['status' => 'success', 'message' => 'Your payment has been approved. Please remember to use your box/space from ' . date('d M Y', strtotime($orderDetails->first()->start_date))], 200);
+      } else {
+        return response()->json(['status' => 'success', 'message' => 'Your payment has been ' . $status], 200);
+      }
 		}
 
 	}
