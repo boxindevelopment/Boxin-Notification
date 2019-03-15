@@ -40,11 +40,18 @@ class ConfirmPayment implements ShouldQueue
         $user = User::find($this->user_id);
         if($user){
             $userDevices = UserDevice::where('user_id', $user->id)->get();
-            $title = 'Your payment has been ' . $this->status;
+            $title       = 'Your payment has been ' . $this->status;
+            $head        = 'Payment Rejected';
+            if ($this->status == 'approved') {
+              $head  = 'Payment Approved';
+              $title = 'Your payment has been approved. Please remember to use your box/space on your selected date';
+            }
+
             $params = [];
             $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
             $params['contents'] = ["en" => $title];
-            $params['headings'] = ["en" => "Boxin Notification confirm payment"];
+            // $params['headings'] = ["en" => "Boxin Notification confirm payment"];
+            $params['headings'] = ["en" => $head];
             $params['data'] = json_decode(json_encode(['type' => 'confirm-payment-' . $this->status,'detail' => ['message' => $title, 'data' => $this->data] ]));
             $onesignal = OneSignal::sendNotificationCustom($params);
 
