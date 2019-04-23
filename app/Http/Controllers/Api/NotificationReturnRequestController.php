@@ -24,4 +24,15 @@ class NotificationReturnRequestController extends Controller {
         ReturnRequest::dispatch($user_id, $title)->onQueue('processing');
 		return response()->json(['status' => 'success', 'message' => $title]);
 	}
+  
+  public function returnRequestCron(Request $request, $user_id)
+	{
+    $title = $request->title;
+    if (empty($title)) {
+      $title = 'Please check your return request.';
+    }
+        ReturnRequest::dispatch($user_id, $title)->onQueue('processing');
+		return response()->json(['status' => 'success', 'message' => $title]);
+  }
+  
 }
