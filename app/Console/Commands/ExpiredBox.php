@@ -53,7 +53,7 @@ class ExpiredBox extends Command
         $now = Carbon::now();
         $afterDay = $now->addDays('1');
         $timeNow = Carbon::now('Asia/Jakarta')->format('H');
-        if((int)$timeNow == 13) {
+        if((int)$timeNow == 9) {
 
             $query          = OrderDetailBox::query();
                               $query->where('status_id', 9);
