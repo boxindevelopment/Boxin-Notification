@@ -7,6 +7,8 @@ use App\Jobs\Notif\ItemStored;
 use App\Models\OrderDetailBox;
 use App\Models\Notification;
 use App\Models\OrderDetail;
+use App\Models\Box;
+use App\Models\SpaceSmall;
 use Carbon\Carbon;
 use DB;
 use Log;
@@ -53,7 +55,7 @@ class ExpiredBox extends Command
         $now = Carbon::now();
         $afterDay = $now->addDays('1');
         $timeNow = Carbon::now('Asia/Jakarta')->format('H');
-        if((int)$timeNow == 9) {
+        if((int)$timeNow == 16) {
 
             $query          = OrderDetailBox::query();
                               $query->where('status_id', 9);
@@ -80,7 +82,47 @@ class ExpiredBox extends Command
                 }
             }
 
-        }
+            $queryAfer          = OrderDetailBox::query();
+                                $queryAfer->where('status_id', 9);
+                                $queryAfer->whereHas('order_detail', function($q) use ($afterDay) {
+                                    $q->whereDate('end_date', $afterDay);
+                                });
+            $orderDetailBoxAfter = $queryAfer->get();
+            if(count($orderDetailBoxAfter) > 0){
+                foreach ($orderDetailBoxAfter as $kAfter => $vAfter) {
+                    if($vAfter->order_detail) {
+                        if($vAfter->order_detail->types_of_box_room_id == 1){
+                            $box = Box::find($vAfter->order_detail->room_or_box_id);
+                            $box->status_id = 10;
+                            $box->save();
 
+                            $vAfter->order_detail->status_id = 12;
+                            $vAfter->order_detail->save();
+
+                            $vAfter->order_detail->order->status_id = 12;
+                            $vAfter->order_detail->order->save();
+
+                            $vAfter->status_id = 10;
+                            $vAfter->save();
+                        } else {
+                            $spaceSmall = SpaceSmall::find($vAfter->order_detail->room_or_box_id);
+                            $spaceSmall->status_id = 10;
+                            $spaceSmall->save();
+
+                            $vAfter->order_detail->status_id = 12;
+                            $vAfter->order_detail->save();
+
+                            $vAfter->order_detail->order->status_id = 12;
+                            $vAfter->order_detail->order->save();
+
+                            $vAfter->status_id = 10;
+                            $vAfter->save();
+                        }
+                    }
+                }
+            }
+
+        }
     }
+
 }
