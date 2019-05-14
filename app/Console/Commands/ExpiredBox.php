@@ -53,8 +53,8 @@ class ExpiredBox extends Command
         $now = Carbon::now();
         $afterDay = $now->addDays('1');
         $timeNow = Carbon::now('Asia/Jakarta')->format('H');
+        if((int)$timeNow == 13) {
 
-        if((int)$timeNow == 11) {
             $query          = OrderDetailBox::query();
                               $query->where('status_id', 9);
                               $query->whereRaw("[id] NOT IN (SELECT [notifiable_id] FROM [notifications] WHERE [notifiable_type] = 'OrderDetailBox')");
@@ -78,8 +78,8 @@ class ExpiredBox extends Command
                         $token            = ItemStored::dispatch($v->order_detail->order->user_id, $title, $data, $v)->onQueue('processing');
                     }
                 }
-
             }
+
         }
 
     }
