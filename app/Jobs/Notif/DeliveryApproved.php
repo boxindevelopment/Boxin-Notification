@@ -33,22 +33,25 @@ class DeliveryApproved implements ShouldQueue
 
             $userDevices = UserDevice::where('user_id', $this->user_id)->get();
             $title = "Don't forget to prepare your items!&#013;Our courier will come tomorrow";
-            $params = [];
-            $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
-            $params['contents'] = ["en" => $title];
-            $params['headings'] = ["en" => $title];
-            $params['data'] = json_decode(json_encode(['type' => 'delivery-approved','detail' => ['message' => $title] ]));
-            OneSignal::sendNotificationCustom($params);
-
-            $dataNotif['type'] = 'delivery approved';
-            $dataNotif['title'] = $title;
-            $dataNotif['user_id'] = $this->user_id;
-            $dataNotif['notifiable_type'] = 'user';
-            $dataNotif['notifiable_id'] = $this->user_id;
-            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title, 'data' => $this->data] ]);
-            Notification::create($dataNotif);
-
-            return $userDevices->pluck('token');
+            $token = $userDevices->pluck('token');
+            if($token){
+                $params = [];
+                $params['include_player_ids'] = $token;//array($userId);
+                $params['contents'] = ["en" => $title];
+                $params['headings'] = ["en" => $title];
+                $params['data'] = json_decode(json_encode(['type' => 'delivery-approved','detail' => ['message' => $title] ]));
+                OneSignal::sendNotificationCustom($params);
+                $dataNotif['type'] = 'delivery approved';
+                $dataNotif['title'] = $title;
+                $dataNotif['user_id'] = $this->user_id;
+                $dataNotif['notifiable_type'] = 'user';
+                $dataNotif['notifiable_id'] = $this->user_id;
+                $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title, 'data' => $this->data] ]);
+                Notification::create($dataNotif);
+                return $userDevices->pluck('token');
+            } else {
+                return false;
+            }
 
     }
 }
