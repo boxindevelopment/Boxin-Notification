@@ -39,7 +39,9 @@ Route::group(['namespace' => 'Api'], function () {
     Route::post('/cron/return-request/{user_id}', ['uses' => 'NotificationReturnRequestController@returnRequestCron', 'as' => 'api.notification.return.requestcron']);
     //9. Admin ReturnBoxesController function update status = 12
     Route::post('/returned/{user_id}', ['uses' => 'NotificationReturnedController@returned', 'as' => 'api.notification.returned']);
-    
+
     Route::get('/payment-email/{order_id}', ['uses' => 'NotificationEmailPaymentController@send_email', 'as' => 'api.notification.email.payment']);
+
+    Route::post('/contact', ['uses' => 'ContactController@store', 'as' => 'api.contact.store']);
 
 });

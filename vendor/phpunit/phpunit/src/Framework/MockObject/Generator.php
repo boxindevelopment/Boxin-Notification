@@ -458,18 +458,16 @@ class Generator
         $methodsBuffer  = '';
 
         foreach ($_methods as $method) {
-            $nameStart = \strpos($method, ' ') + 1;
-            $nameEnd   = \strpos($method, '(');
-            $name      = \substr($method, $nameStart, $nameEnd - $nameStart);
+            \preg_match_all('/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*\(/', $method, $matches, \PREG_OFFSET_CAPTURE);
+            $lastFunction = \array_pop($matches[0]);
+            $nameStart    = $lastFunction[1];
+            $nameEnd      = $nameStart + \strlen($lastFunction[0]) - 1;
+            $name         = \str_replace('(', '', $lastFunction[0]);
 
             if (empty($methods) || \in_array($name, $methods, true)) {
-                $args    = \explode(
+                $args = \explode(
                     ',',
-                    \substr(
-                        $method,
-                        $nameEnd + 1,
-                        \strpos($method, ')') - $nameEnd - 1
-                    )
+                    \str_replace(')', '', \substr($method, $nameEnd + 1))
                 );
 
                 foreach (\range(0, \count($args) - 1) as $i) {
@@ -551,6 +549,25 @@ class Generator
         foreach ($class->getMethods() as $method) {
             if (($method->isPublic() || $method->isAbstract()) && $this->canMockMethod($method)) {
                 $methods[] = MockMethod::fromReflection($method, $callOriginalMethods, $cloneArguments);
+            }
+        }
+
+        return $methods;
+    }
+
+    /**
+     * @throws \ReflectionException
+     *
+     * @return \ReflectionMethod[]
+     */
+    private function getInterfaceOwnMethods(string $interfaceName): array
+    {
+        $reflect = new ReflectionClass($interfaceName);
+        $methods = [];
+
+        foreach ($reflect->getMethods() as $method) {
+            if ($method->getDeclaringClass()->getName() === $interfaceName) {
+                $methods[] = $method;
             }
         }
 
@@ -731,7 +748,14 @@ class Generator
             // @see https://github.com/sebastianbergmann/phpunit/issues/2995
             if ($isInterface && $class->implementsInterface(\Throwable::class)) {
                 $additionalInterfaces[] = $class->getName();
+                $interfaceOwnMethods    = [];
                 $isInterface            = false;
+
+                foreach ($this->getInterfaceOwnMethods($mockClassName['fullClassName']) as $method) {
+                    $interfaceOwnMethods[] = MockMethod::fromReflection($method, $callOriginalMethods, $cloneArguments);
+                }
+
+                $mockMethods->addMethods(...$interfaceOwnMethods);
 
                 $mockClassName = $this->generateClassName(
                     \Exception::class,
@@ -772,7 +796,7 @@ class Generator
             $cloneTemplate = $cloneTemplate->render();
         }
 
-        if (\is_array($explicitMethods) && empty($explicitMethods) &&
+        if ($explicitMethods === [] &&
             ($isClass || $isInterface)) {
             $mockMethods->addMethods(
                 ...$this->mockClassMethods($mockClassName['fullClassName'], $callOriginalMethods, $cloneArguments)
