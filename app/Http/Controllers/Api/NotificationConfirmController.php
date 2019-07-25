@@ -27,33 +27,32 @@ class NotificationConfirmController extends Controller {
 	public function confirmPayment(Request $request, $user_id)
 	{
 
-        $validator = \Validator::make($request->all(), [
-            'status_id'   		=> 'required',
-            'order_detail_id'   => 'required',
+    $validator = \Validator::make($request->all(), [
+        'status_id'       => 'required',
+        'order_detail_id' => 'required',
+    ]);
+
+    if($validator->fails()) {
+        return response()->json([
+            'status' => false,
+            'message' => $validator->errors()
         ]);
+    }
 
-        if($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()
-            ]);
-        }
-		$orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
-						            ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
-						            ->where('order_details.id', $request->order_detail_id)
-						            ->get();
-
+    $status = 'approved';
+    if ($request->status_id == 8) {
+      $status = 'rejected';
+    }
+    
+    $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')->where('order_details.id', $request->order_detail_id)->get();
 		if(count($orderDetails) > 0) {
-            $data = OrderDetailResource::collection($orderDetails);
-
-			$status = ($request->status_id == 7) ? 'approved' : 'rejected';
-
+      $data = OrderDetailResource::collection($orderDetails);
       $confirm = ConfirmPayment::dispatch($user_id, $status, $data)->onQueue('processing');
-      if ($request->status_id == 7) {
+      if ($status == 'approved') {
         return response()->json(['status' => 'success', 'message' => 'Your payment has been approved. Please remember to use your box/space from ' . date('d M Y', strtotime($orderDetails->first()->start_date))], 200);
-      } else {
-        return response()->json(['status' => 'success', 'message' => 'Your payment has been ' . $status], 200);
       }
+
+      return response()->json(['status' => 'success', 'message' => 'Your payment has been ' . $status . $request->status_id], 200);
 		}
 
 	}

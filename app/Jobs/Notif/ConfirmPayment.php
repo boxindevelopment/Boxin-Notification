@@ -38,7 +38,7 @@ class ConfirmPayment implements ShouldQueue
     {
 
         $user = User::find($this->user_id);
-        if($user){
+        if ($user) {
             $userDevices = UserDevice::where('user_id', $user->id)->get();
             $title       = 'Your payment has been ' . $this->status;
             $head        = 'Payment Rejected';
