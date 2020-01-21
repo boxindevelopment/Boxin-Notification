@@ -35,22 +35,27 @@ class Returned implements ShouldQueue
     {
 
         $userDevices = UserDevice::where('user_id', $this->user_id)->get();
-        $params = [];
-        $params['include_player_ids'] = $userDevices->pluck('token');
-        $params['contents'] = ["en" => $this->title];
-        $params['headings'] = ["en" => $this->title];
-        $params['data'] = json_decode(json_encode(['type' => 'returned','detail' => ['message' => $this->title, 'data' => $this->data] ]));
-        OneSignal::sendNotificationCustom($params);
+        $token = $userDevices->pluck('token');
+        if($token) {
+            $params = [];
+            $params['include_player_ids'] = $token;
+            $params['contents'] = ["en" => $this->title];
+            $params['headings'] = ["en" => $this->title];
+            $params['data'] = json_decode(json_encode(['type' => 'returned','detail' => ['message' => $this->title, 'data' => $this->data] ]));
+            OneSignal::sendNotificationCustom($params);
 
-        $dataNotif['type'] = 'returned';
-        $dataNotif['title'] = $this->title;
-        $dataNotif['user_id'] = $this->user_id;
-        $dataNotif['notifiable_type'] = 'user';
-        $dataNotif['notifiable_id'] = $this->user_id;
-        $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->data] ]);
-        Notification::create($dataNotif);
+            $dataNotif['type'] = 'returned';
+            $dataNotif['title'] = $this->title;
+            $dataNotif['user_id'] = $this->user_id;
+            $dataNotif['notifiable_type'] = 'user';
+            $dataNotif['notifiable_id'] = $this->user_id;
+            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->data] ]);
+            Notification::create($dataNotif);
 
-        return $userDevices->pluck('token');
+            return $userDevices->pluck('token');
+        } else {
+            return false;
+        }
 
     }
 }
