@@ -60,9 +60,7 @@ class CronController extends Controller
                             //Status empty space
                             SpaceSmall::where('id', $d->room_or_box_id)->update(['status_id' => 10]);
                         }
-
                         Log::info('code : ' . $d->id_name);
-
                     }
                     if(count( $v->order_detail) > 0){
                         $status = 'rejected';
@@ -77,6 +75,7 @@ class CronController extends Controller
                     }
                 }
                 return response()->json(['status' => 'success', 'message' => 'Order Count : ' . count($orders), 'order' => $orders], 200);
+                Log::info('Count Order:' . count($orders));
             } else {
                 Log::info('No Order');
                 return response()->json(['status' => 'error', 'message' => 'No Order'], 402);
