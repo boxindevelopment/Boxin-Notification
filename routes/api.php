@@ -43,5 +43,6 @@ Route::group(['namespace' => 'Api'], function () {
     Route::get('/payment-email/{order_id}', ['uses' => 'NotificationEmailPaymentController@send_email', 'as' => 'api.notification.email.payment']);
 
     Route::post('/contact', ['uses' => 'ContactController@store', 'as' => 'api.contact.store']);
+    Route::post('/cron-minutes', ['uses' => 'CronController@minutes', 'as' => 'api.cron.minutes']);
 
 });

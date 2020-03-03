@@ -27,6 +27,11 @@ class OrderDetail extends Model
         return $this->belongsTo('App\Models\Room', 'room_or_box_id', 'id');
     }
 
+    public function space_small()
+    {
+        return $this->belongsTo('App\Models\SpaceSmall', 'room_or_box_id', 'id');
+    }
+
     public function type_box_room()
     {
         return $this->belongsTo('App\Models\TypeBoxRoom', 'types_of_box_room_id', 'id');
