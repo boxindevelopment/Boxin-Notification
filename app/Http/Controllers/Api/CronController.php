@@ -35,11 +35,15 @@ class CronController extends Controller
         $query->with('pickup_order', 'order_detail');
         $query->where('status_id', 14);
         $query->where('created_at', '<', $beforeDay);
+        $query->limit(4);
         $orders = $query->get();
         DB::beginTransaction();
         try {
             if(count($orders) > 0){
+                $no = 0;
                 foreach ($orders as $k => $v) {
+                    $no++;
+                    Log::info('Order ID:' . $v->id);
                     //Status cancelled orders
                     $v->status_id = 24;
                     $v->save();
@@ -60,7 +64,6 @@ class CronController extends Controller
                             //Status empty space
                             SpaceSmall::where('id', $d->room_or_box_id)->update(['status_id' => 10]);
                         }
-                        Log::info('code : ' . $d->id_name);
                     }
                     if(count( $v->order_detail) > 0){
                         $status = 'rejected';
@@ -74,21 +77,17 @@ class CronController extends Controller
                         }
                     }
                 }
-                return response()->json(['status' => 'success', 'message' => 'Order Count : ' . count($orders), 'order' => $orders], 200);
-                Log::info('Count Order:' . count($orders));
+                DB::commit();
             } else {
-                Log::info('No Order');
                 return response()->json(['status' => 'error', 'message' => 'No Order'], 402);
             }
         } catch (Exception $e) {
-            Log::info('===================================ERRORR=========================');
-            Log::info(json_encode($e));
-            Log::info('===================================END============================');
             DB::rollback();
             return response()->json([
                 'status' =>false,
                 'message' => $e->getMessage()
             ], 401);
         }
+        return response()->json(['status' => 'success', 'message' => 'Order Count : ' . count($orders), 'order' => $orders], 200);
     }
 }
