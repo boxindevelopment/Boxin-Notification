@@ -47,26 +47,30 @@ class ConfirmPayment implements ShouldQueue
               $title = 'Your payment has been approved. Please remember to use your box/space on your selected date';
             }
 
-            $token = $userDevices->pluck('token');
-            if($token){
-                $params = [];
-                $params['include_player_ids'] = $token;//array($userId);
-                $params['contents'] = ["en" => $title];
-                // $params['headings'] = ["en" => "Boxin Notification confirm payment"];
-                $params['headings'] = ["en" => $head];
-                $params['data'] = json_decode(json_encode(['type' => 'confirm-payment-' . $this->status,'detail' => ['message' => $title, 'data' => $this->data] ]));
-                $onesignal = OneSignal::sendNotificationCustom($params);
+            if(count($userDevices) > 0) {
+                $token = $userDevices->pluck('token');
+                if($token){
+                    $params = [];
+                    $params['include_player_ids'] = $token;//array($userId);
+                    $params['contents'] = ["en" => $title];
+                    // $params['headings'] = ["en" => "Boxin Notification confirm payment"];
+                    $params['headings'] = ["en" => $head];
+                    $params['data'] = json_decode(json_encode(['type' => 'confirm-payment-' . $this->status,'detail' => ['message' => $title, 'data' => $this->data] ]));
+                    $onesignal = OneSignal::sendNotificationCustom($params);
 
-                $dataNotif['type'] = 'confirm payment ' . $this->status;
-                $dataNotif['title'] = $title;
-                $dataNotif['user_id'] = $user->id;
-                $dataNotif['order_id'] = $this->data[0]->order->id;
-                $dataNotif['notifiable_type'] = 'user';
-                $dataNotif['notifiable_id'] = $user->id;
-                $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title, 'data' => $this->data] ]);
-                $notification = Notification::create($dataNotif);
+                    $dataNotif['type'] = 'confirm payment ' . $this->status;
+                    $dataNotif['title'] = $title;
+                    $dataNotif['user_id'] = $user->id;
+                    $dataNotif['order_id'] = $this->data[0]->order->id;
+                    $dataNotif['notifiable_type'] = 'user';
+                    $dataNotif['notifiable_id'] = $user->id;
+                    $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title, 'data' => $this->data] ]);
+                    $notification = Notification::create($dataNotif);
 
-                return $notification;
+                    return $notification;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
