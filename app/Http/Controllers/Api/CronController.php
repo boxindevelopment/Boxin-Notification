@@ -82,6 +82,9 @@ class CronController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'No Order'], 402);
             }
         } catch (Exception $e) {
+            Log::info('===================================ERRORR=========================');
+            Log::info(json_encode($e));
+            Log::info('===================================END============================');
             DB::rollback();
             return response()->json([
                 'status' =>false,
