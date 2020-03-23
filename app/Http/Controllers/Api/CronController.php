@@ -97,6 +97,7 @@ class CronController extends Controller
         $now = Carbon::now('Asia/Jakarta');
         $beforeDay = $now->addDays('3')->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
+        $dateNow = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $query  = OrderDetail::query();
         $query->with('order.pickup_order');
         $query->select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'));
@@ -118,6 +119,7 @@ class CronController extends Controller
                 });
         $query->where('end_date', '<', $beforeDay);
         $query->where('end_date', '>', $timeNow);
+        $query->whereRaw("(reminder_date <> '" . $dateNow . "' OR reminder_date IS NULL)");
         $query->leftJoin('orders', 'orders.id', '=', 'order_details.order_id');
         $query->limit(4);
         $orderDetail = $query->get();
@@ -128,6 +130,8 @@ class CronController extends Controller
 
                 $title = "Your " . $box_space . " with order id " . $data->id_name . " will end on (" . Carbon::parse($data->end_date)->format('d/m/Y') . ")";
                 SendNotif::dispatch($data->user_id, $title, $data, 'reminder-expired', 'Reminder expired')->onQueue('processing');
+                
+                OrderDetail::where('id', $data->id)->update(['reminder_date' => $dateNow]);
             }
 			return response()->json(['status' => 'success', 'message' => $title], 200);
         }
