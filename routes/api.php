@@ -44,5 +44,6 @@ Route::group(['namespace' => 'Api'], function () {
 
     Route::post('/contact', ['uses' => 'ContactController@store', 'as' => 'api.contact.store']);
     Route::post('/cron-minutes', ['uses' => 'CronController@minutes', 'as' => 'api.cron.minutes']);
+    Route::post('/cron-days', ['uses' => 'CronController@days', 'as' => 'api.cron.days']);
 
 });
