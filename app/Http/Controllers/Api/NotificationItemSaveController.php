@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\OrderDetail;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
-use App\Jobs\Notif\ItemSave;
+use App\Jobs\Notif\SendNotif;
 use DB;
 use Illuminate\Http\Request;
 
@@ -43,7 +43,7 @@ class NotificationItemSaveController extends Controller {
 
             $data = OrderDetailResource::collection($orderDetails);
 			$title = "Congratulation! Your items has been stored";
-	        $token = ItemSave::dispatch($user_id, $title, $data)->onQueue('processing');
+	        SendNotif::dispatch($user_id, $title, $data, 'item-save', 'item save')->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 

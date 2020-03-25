@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\OrderDetail;
-use App\Jobs\Notif\DeliveryStored;
 use App\Jobs\Notif\SendNotif;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
