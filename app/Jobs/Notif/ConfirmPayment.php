@@ -50,6 +50,14 @@ class ConfirmPayment implements ShouldQueue
             if(count($userDevices) > 0) {
                 $token = $userDevices->pluck('token');
                 if($token){
+                    $adminTokens = UserDevice::where('device', 'web')->get()->pluck('token');
+                    if($adminTokens){
+                        $count = count($token);
+                        foreach($adminTokens as $k => $v){
+                            $token[$count] = $v;
+                            $count++;
+                        }
+                    }
                     $params = [];
                     $params['include_player_ids'] = $token;//array($userId);
                     $params['contents'] = ["en" => $title];
@@ -66,6 +74,21 @@ class ConfirmPayment implements ShouldQueue
                     $dataNotif['notifiable_id'] = $user->id;
                     $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $title, 'data' => $this->data] ]);
                     $notification = Notification::create($dataNotif);
+
+                    
+                    $admins = User::where('roles_id', 3)->get();
+                    if($admins){
+                        foreach($admins as $kAdmin => $vAdmin){
+                            $dataNotifAdmin['type'] = 'confirm payment ' . $this->status;
+                            $dataNotifAdmin['title'] = $title;
+                            $dataNotifAdmin['user_id'] = $vAdmin->id;
+                            $dataNotifAdmin['order_id'] = $this->data[0]->order->id;
+                            $dataNotifAdmin['notifiable_type'] = 'admin';
+                            $dataNotifAdmin['notifiable_id'] = $vAdmin->id;
+                            $dataNotifAdmin['data'] = json_encode(['type' => 'admin','detail' => ['message' => $title, 'data' => $this->data] ]);
+                            $notification = Notification::create($dataNotifAdmin);
+                        }
+                    }
 
                     return $notification;
                 } else {

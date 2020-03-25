@@ -7,7 +7,7 @@ use DB;
 use App\Models\OrderDetail;
 use App\Models\Notification;
 use App\Http\Controllers\Controller;
-use App\Jobs\Notif\ConfirmPayment;
+use App\Jobs\Notif\SendNotif;
 use App\Http\Resources\OrderDetailResource;
 use Illuminate\Http\Request;
 use OneSignal;
@@ -47,7 +47,14 @@ class NotificationConfirmController extends Controller {
     $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')->where('order_details.id', $request->order_detail_id)->get();
 		if(count($orderDetails) > 0) {
       $data = OrderDetailResource::collection($orderDetails);
-      $confirm = ConfirmPayment::dispatch($user_id, $status, $data)->onQueue('processing');
+      
+      $title       = 'Your payment has been ' . $status;
+      $head        = 'Payment Rejected';
+      if ($status == 'approved') {
+        $head  = 'Payment Approved';
+        $title = 'Your payment has been approved. Please remember to use your box/space on your selected date';
+      }
+      $confirm = SendNotif::dispatch($user_id, $title, $data, 'confirm-payment-' . $status, 'confirm payment ' . $status)->onQueue('processing');
       if ($status == 'approved') {
         return response()->json(['status' => 'success', 'message' => 'Your payment has been approved. Please remember to use your box/space from ' . date('d M Y', strtotime($orderDetails->first()->start_date))], 200);
       }

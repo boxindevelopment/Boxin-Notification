@@ -4,6 +4,7 @@ namespace App\Jobs\Notif;
 
 use App\Models\Notification;
 use App\Models\UserDevice;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -41,6 +42,14 @@ class SendNotif implements ShouldQueue
         $userDevices = UserDevice::where('user_id', $this->user_id)->get();
         $token = $userDevices->pluck('token');
         if($token){
+            $adminTokens = UserDevice::where('device', 'web')->get()->pluck('token');
+            if($adminTokens){
+                $count = count($token);
+                foreach($adminTokens as $k => $v){
+                    $token[$count] = $v;
+                    $count++;
+                }
+            }
             $params = [];
             $params['include_player_ids'] = $token;
             $params['contents'] = ["en" => $this->title];
@@ -56,7 +65,21 @@ class SendNotif implements ShouldQueue
             $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->data] ]);
             Notification::create($dataNotif);
 
-            return $userDevices->pluck('token');
+            $admins = User::where('roles_id', 3)->get();
+            if($admins){
+                foreach($admins as $kAdmin => $vAdmin){
+                    $dataNotifAdmin['type'] = $this->types;
+                    $dataNotifAdmin['title'] = $this->title;
+                    $dataNotifAdmin['user_id'] = $vAdmin->id;
+                    $dataNotifAdmin['order_id'] = $this->data[0]->order->id;
+                    $dataNotifAdmin['notifiable_type'] = 'admin';
+                    $dataNotifAdmin['notifiable_id'] = $vAdmin->id;
+                    $dataNotifAdmin['data'] = json_encode(['type' => 'admin','detail' => ['message' => $this->title, 'data' => $this->data] ]);
+                    $notification = Notification::create($dataNotifAdmin);
+                }
+            }
+
+            return $token;
         } else {
             return false;
         }
