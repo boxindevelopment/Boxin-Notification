@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
-use App\Jobs\Notif\Returned;
+// use App\Jobs\Notif\Returned;
+use App\Jobs\Notif\SendNotif;
 use App\Models\OrderDetail;
 use DB;
 use Illuminate\Http\Request;
@@ -43,7 +44,8 @@ class NotificationReturnedController extends Controller {
 
 			$data = OrderDetailResource::collection($orderDetails);
 			$title = "Thank you for using Boxin Apps";
-	        Returned::dispatch($user_id, $title, $data)->onQueue('processing');
+	        // Returned::dispatch($user_id, $title, $data)->onQueue('processing');
+	        SendNotif::dispatch($user_id, $title, $data, 'returned', 'returned')->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}

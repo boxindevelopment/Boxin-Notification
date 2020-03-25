@@ -40,9 +40,11 @@ class ItemStored implements ShouldQueue
 
             $userDevices = UserDevice::where('user_id', $this->user_id)->get();
             if($userDevices){
+
                 $params = [];
-                $params['include_player_ids'] = $userDevices->pluck('token');//array($userId);
+                $params['include_player_ids'] = $userDevices->pluck('token');
                 if($params['include_player_ids']){
+
                     $params['contents'] = ["en" => $this->title];
                     $params['headings'] = ["en" => $this->title];
                     $params['data'] = json_decode(json_encode(['type' => 'item-stored','detail' => ['message' => $this->title, 'data' => $this->data] ]));
@@ -56,10 +58,9 @@ class ItemStored implements ShouldQueue
                     $dataNotif['notifiable_id'] = $this->orderDetailBox->id;
                     $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->data] ]);
                     Notification::create($dataNotif);
-                    \Log::info('Send Notif success');
-                    \Log::info('Token:' . $userDevices->pluck('token'));
 
                     return $userDevices->pluck('token');
+
                 }
             }
 
