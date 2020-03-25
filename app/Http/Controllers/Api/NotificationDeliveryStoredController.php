@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\OrderDetail;
 use App\Jobs\Notif\DeliveryStored;
+use App\Jobs\Notif\SendNotif;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
 use DB;
@@ -44,7 +45,7 @@ class NotificationDeliveryStoredController extends Controller {
             $data = OrderDetailResource::collection($orderDetails);
 
 			$title = "Your items is on the way back to you";
-	        DeliveryStored::dispatch($user_id, $title, $data)->onQueue('processing');
+			SendNotif::dispatch($user_id, $title, $data, 'delivery-stored', 'delivery stored')->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 
 		}
