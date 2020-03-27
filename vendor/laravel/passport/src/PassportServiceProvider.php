@@ -3,25 +3,25 @@
 namespace Laravel\Passport;
 
 use DateInterval;
-use Illuminate\Auth\RequestGuard;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Auth\RequestGuard;
+use Illuminate\Config\Repository as Config;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Bridge\PersonalAccessGrant;
+use Laravel\Passport\Bridge\RefreshTokenRepository;
 use Laravel\Passport\Guards\TokenGuard;
-use League\OAuth2\Server\CryptKey;
-use League\OAuth2\Server\ResourceServer;
-use Illuminate\Config\Repository as Config;
 use League\OAuth2\Server\AuthorizationServer;
+use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\Grant\AuthCodeGrant;
+use League\OAuth2\Server\Grant\ClientCredentialsGrant;
 use League\OAuth2\Server\Grant\ImplicitGrant;
 use League\OAuth2\Server\Grant\PasswordGrant;
-use Laravel\Passport\Bridge\PersonalAccessGrant;
 use League\OAuth2\Server\Grant\RefreshTokenGrant;
-use Laravel\Passport\Bridge\RefreshTokenRepository;
-use League\OAuth2\Server\Grant\ClientCredentialsGrant;
+use League\OAuth2\Server\ResourceServer;
 
 class PassportServiceProvider extends ServiceProvider
 {
@@ -78,12 +78,13 @@ class PassportServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        if (! $this->app->configurationIsCached()) {
+            $this->mergeConfigFrom(__DIR__.'/../config/passport.php', 'passport');
+        }
+
         $this->registerAuthorizationServer();
-
         $this->registerResourceServer();
-
         $this->registerGuard();
-
         $this->offerPublishing();
     }
 
@@ -226,7 +227,7 @@ class PassportServiceProvider extends ServiceProvider
     }
 
     /**
-     * Create a CryptKey instance without permissions check
+     * Create a CryptKey instance without permissions check.
      *
      * @param string $key
      * @return \League\OAuth2\Server\CryptKey
