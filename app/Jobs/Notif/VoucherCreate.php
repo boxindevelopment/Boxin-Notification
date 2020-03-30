@@ -19,12 +19,16 @@ class VoucherCreate implements ShouldQueue
     protected $title;
     protected $head;
     protected $name;
+    protected $code;
+    protected $id;
 
-    public function __construct($title, $head, $name)
+    public function __construct($title, $head, $name, $code, $id)
     {
         $this->title = $title;
         $this->name = $name;
         $this->head = $head;
+        $this->code = $code;
+        $this->id = $id;
     }
 
     /**
@@ -42,16 +46,18 @@ class VoucherCreate implements ShouldQueue
         if($token){
             $params = [];
             $params['include_player_ids'] = $token;
-            $params['contents'] = ["en" => $this->title];
+            $params['contents'] = ["en" => $this->name];
             $params['headings'] = ["en" => $this->title];
-            $params['data'] = json_decode(json_encode(['type' => 'Promo','detail' => ['message' => $this->title] ]));
+            $params['data'] = json_decode(json_encode(['type' => 'Voucher','detail' => [
+                'message' => $this->title,'name' => $this->name ,'code' => $this->code, 'id' => $this->id
+            ] ]));
             OneSignal::sendNotificationCustom($params);
-            $dataNotif['type'] = 'delivery approved';
+            $dataNotif['type'] = 'Voucher';
             $dataNotif['title'] = $this->title;
             $dataNotif['user_id'] = $value['user_id'];
-            $dataNotif['notifiable_type'] = 'user';
+            $dataNotif['notifiable_type'] = 'Voucher';
             $dataNotif['notifiable_id'] = $value['user_id'];
-            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->name] ]);
+            $dataNotif['data'] = json_encode(['type' => 'Voucher','detail' => ['message' => $this->title, 'name' => $this->name] ]);
             Notification::create($dataNotif);
             return $token;
         } else {
