@@ -35,27 +35,27 @@ class VoucherCreate implements ShouldQueue
     public function handle()
     {
         $userDevices = UserDevice::where('device', '<>' , 'web')->get();
+        $token = [];
         foreach($userDevices as $value){
             $token = $value->pluck('token');
-            if($token){
-                $params = [];
-                $params['include_player_ids'] = $token;
-                $params['contents'] = ["en" => $this->title];
-                $params['headings'] = ["en" => $this->title];
-                $params['data'] = json_decode(json_encode(['type' => 'Promo','detail' => ['message' => $this->title] ]));
-                OneSignal::sendNotificationCustom($params);
-                $dataNotif['type'] = 'delivery approved';
-                $dataNotif['title'] = $this->title;
-                $dataNotif['user_id'] = $value['user_id'];
-                $dataNotif['notifiable_type'] = 'user';
-                $dataNotif['notifiable_id'] = $value['user_id'];
-                $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->name] ]);
-                Notification::create($dataNotif);
-                return $token;
-            } else {
-                return false;
-            }
-
+        }
+        if($token){
+            $params = [];
+            $params['include_player_ids'] = $token;
+            $params['contents'] = ["en" => $this->title];
+            $params['headings'] = ["en" => $this->title];
+            $params['data'] = json_decode(json_encode(['type' => 'Promo','detail' => ['message' => $this->title] ]));
+            OneSignal::sendNotificationCustom($params);
+            $dataNotif['type'] = 'delivery approved';
+            $dataNotif['title'] = $this->title;
+            $dataNotif['user_id'] = $value['user_id'];
+            $dataNotif['notifiable_type'] = 'user';
+            $dataNotif['notifiable_id'] = $value['user_id'];
+            $dataNotif['data'] = json_encode(['type' => 'user','detail' => ['message' => $this->title, 'data' => $this->name] ]);
+            Notification::create($dataNotif);
+            return $token;
+        } else {
+            return false;
         }
     }
 }

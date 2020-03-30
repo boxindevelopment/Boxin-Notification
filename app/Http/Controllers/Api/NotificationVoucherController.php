@@ -29,7 +29,13 @@ class NotificationVoucherController extends Controller {
 	{
         $title = "New promo is waiting for you!";
         $head = 'New Promo';
-        $name = $request->name;
+		$name = $request->name;
+		// $userDevices = UserDevice::where('device', '<>' , 'web')->get();
+		// foreach($userDevices as $value){
+		// 	$token = $value['token'];
+		// 	return response()->json(['token' => $token]);
+		// 	if()
+		// }
         $voucher = VoucherCreate::dispatch($title, $head, $name)->onQueue('processing');
         return response()->json(['status' => 'success', 'message' => 'Promo'], 200);
 	}
