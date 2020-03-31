@@ -46,4 +46,5 @@ Route::group(['namespace' => 'Api'], function () {
     Route::post('/cron-minutes', ['uses' => 'CronController@minutes', 'as' => 'api.cron.minutes']);
     Route::post('/cron-days', ['uses' => 'CronController@days', 'as' => 'api.cron.days']);
 
+    Route::post('/create-voucher', ['uses' => 'NotificationVoucherController@createvoucher', 'as' => 'api.notification.create.voucher']);
 });

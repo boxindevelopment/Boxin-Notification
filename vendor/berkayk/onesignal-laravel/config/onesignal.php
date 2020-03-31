@@ -8,7 +8,7 @@ return array(
 	|
 	|
 	*/
-    'app_id' => 'YOUR-APP-ID-HERE',
+    'app_id' => '622c31f4-a1ac-4677-ac9d-0c07148d93d0',
 
     /*
 	|--------------------------------------------------------------------------
@@ -18,6 +18,6 @@ return array(
     |
 	|
 	*/
-    'rest_api_key' => 'YOUR-REST-API-KEY-HERE',
+    'rest_api_key' => 'NDA2NzIzNWEtNTczNC00NjA1LWI5MTctZjA4MmRmOGE3YTA0',
     'user_auth_key' => 'YOUR-USER-AUTH-KEY'
 );
