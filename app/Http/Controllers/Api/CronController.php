@@ -67,14 +67,14 @@ class CronController extends Controller
                         }
                     }
                     if(count( $v->order_detail) > 0){
-                        $status = 'rejected';
                         $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
                                                     ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
                                                     ->where('order_details.id', $v->order_detail[0]->id)
                                                     ->get();
                         if(count($orderDetails) > 0) {
                             $data = OrderDetailResource::collection($orderDetails);
-                            $confirm = ConfirmPayment::dispatch($v->user_id, $status, $data)->onQueue('processing');
+                            $title = 'Your payment has been rejected';
+                            SendNotif::dispatch($v->user_id, $title, $data, 'confirm-payment-rejected', 'confirm payment rejected')->onQueue('processing');
                         }
                     }
                 }
