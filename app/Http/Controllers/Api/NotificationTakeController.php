@@ -8,6 +8,7 @@ use App\Jobs\Notif\SendNotifAdmin;
 use App\Models\OrderTake;
 use DB;
 use Illuminate\Http\Request;
+use Log;
 
 class NotificationTakeController extends Controller {
 
@@ -23,6 +24,8 @@ class NotificationTakeController extends Controller {
 	 */
 	public function take(Request $request, $take_id)
 	{
+
+		Log::info('Notification take');
 
         $validator = \Validator::make($request->all(), [
             'order_detail_id'   => 'required',
@@ -40,8 +43,9 @@ class NotificationTakeController extends Controller {
                                     ->leftJoin('users', 'users.id', '=', 'orders.user_id')
 						            ->where('order_takes.id', $take_id)
 						            ->first();
-
+		Log:info(json_encode($orderTake));
 		if($orderTake) {
+			Log::info('Masuk take');
 			$title = "user " . $orderTake->first_name . " " . $orderTake->last_name . ", take request no order " . $orderTake->id_name;
 	        SendNotifAdmin::dispatch($take_id, $title, $orderTake, 'take-request', 'take request')->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
