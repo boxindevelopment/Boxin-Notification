@@ -21,7 +21,7 @@ class NotificationExtendController extends Controller {
 	 * @param  \Illuminate\Http\Request  $request
 	 * @return \Illuminate\Http\Response
 	 */
-	public function extend(Request $request, $user_id)
+	public function extend(Request $request)
 	{
 
         $validator = \Validator::make($request->all(), [
@@ -44,8 +44,7 @@ class NotificationExtendController extends Controller {
 
 			$data = OrderDetailResource::collection($orderDetails);
 			$title = "user " . $orderDetails[0]->first_name . " " . $orderDetails[0]->last_name . ", extend request no order " . $orderDetails[0]->id_name;
-	        // Returned::dispatch($user_id, $title, $data)->onQueue('processing');
-	        SendNotifAdmin::dispatch($user_id, $title, $data, 'extend-request', 'extend request')->onQueue('processing');
+	        SendNotifAdmin::dispatch($request->order_detail_id, $title, $data, 'extend-request', 'extend request')->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}
