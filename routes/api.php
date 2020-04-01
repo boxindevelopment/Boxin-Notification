@@ -42,7 +42,7 @@ Route::group(['namespace' => 'Api'], function () {
     
     Route::post('/take/{take_id}', ['uses' => 'NotificationTakeController@take', 'as' => 'api.notification.take']);
     Route::post('/extend', ['uses' => 'NotificationExtendController@extend', 'as' => 'api.notification.extend']);
-    Route::post('/backwarehouse/{user_id}', ['uses' => 'NotificationBackWarehouseController@backwarehouse', 'as' => 'api.notification.backwarehouse']);
+    Route::post('/backwarehouse/{return_id}', ['uses' => 'NotificationBackWarehouseController@backwarehouse', 'as' => 'api.notification.backwarehouse']);
     Route::post('/terminate/{user_id}', ['uses' => 'NotificationTerminateController@terminate', 'as' => 'api.notification.terminate']);
 
     Route::get('/payment-email/{order_id}', ['uses' => 'NotificationEmailPaymentController@send_email', 'as' => 'api.notification.email.payment']);

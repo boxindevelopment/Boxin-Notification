@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
 use App\Jobs\Notif\SendNotifAdmin;
-use App\Models\OrderDetail;
+use App\Models\OrderBackWarehouse;
 use DB;
 use Illuminate\Http\Request;
 
@@ -21,7 +21,7 @@ class NotificationBackWarehouseController extends Controller {
 	 * @param  \Illuminate\Http\Request  $request
 	 * @return \Illuminate\Http\Response
 	 */
-	public function backwarehouse(Request $request, $user_id)
+	public function backwarehouse(Request $request, $return_id)
 	{
 
         $validator = \Validator::make($request->all(), [
@@ -34,17 +34,17 @@ class NotificationBackWarehouseController extends Controller {
                 'message' => $validator->errors()
             ]);
         }
-		$orderDetails =  OrderDetail::select('order_details.*', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+		$orderBackWarehouse =  OrderBackWarehouse::select('order_back_warehouses.*', 'order_details.id_name', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
+                                    ->leftJoin('order_details', 'order_details.id', '=', 'order_back_warehouses.order_detail_id')
                                     ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
                                     ->leftJoin('users', 'users.id', '=', 'orders.user_id')
-						            ->where('order_details.id', $request->order_detail_id)
-						            ->get();
+						            ->where('order_back_warehouses.id', $return_id)
+						            ->first();
 
-		if(count($orderDetails) > 0) {
+		if($orderBackWarehouse) {
 
-			$data = OrderDetailResource::collection($orderDetails);
-			$title = "user " . $orderDetails[0]->first_name . " " . $orderDetails[0]->last_name . ", return request no order " . $orderDetails[0]->id_name;
-	        SendNotifAdmin::dispatch($user_id, $title, $data, 'return-request', 'return request')->onQueue('processing');
+			$title = "user " . $orderBackWarehouse->first_name . " " . $orderBackWarehouse->last_name . ", return request no order " . $orderBackWarehouse->id_name;
+	        SendNotifAdmin::dispatch($return_id, $title, $orderBackWarehouse, 'return-request', 'return request')->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}
