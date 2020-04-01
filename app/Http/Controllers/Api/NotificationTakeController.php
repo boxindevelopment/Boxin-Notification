@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
 use App\Jobs\Notif\SendNotifAdmin;
-use App\Models\OrderDetail;
+use App\Models\OrderTake;
 use DB;
 use Illuminate\Http\Request;
 
@@ -21,7 +21,7 @@ class NotificationTakeController extends Controller {
 	 * @param  \Illuminate\Http\Request  $request
 	 * @return \Illuminate\Http\Response
 	 */
-	public function take(Request $request, $user_id)
+	public function take(Request $request, $take_id)
 	{
 
         $validator = \Validator::make($request->all(), [
@@ -34,18 +34,16 @@ class NotificationTakeController extends Controller {
                 'message' => $validator->errors()
             ]);
         }
-		$orderDetails =  OrderDetail::select('order_details.*', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+		$orderTake =  OrderTake::select('order_takes.*', 'order_details.id_name', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
+                                    ->leftJoin('order_details', 'order_details.id', '=', 'order_takes.order_detail_id')
                                     ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
                                     ->leftJoin('users', 'users.id', '=', 'orders.user_id')
-						            ->where('order_details.id', $request->order_detail_id)
-						            ->get();
+						            ->where('order_takes.id', $take_id)
+						            ->first();
 
-		if(count($orderDetails) > 0) {
-
-			$data = OrderDetailResource::collection($orderDetails);
-			$title = "user " . $orderDetails[0]->first_name . " " . $orderDetails[0]->last_name . ", take request no order " . $orderDetails[0]->id_name;
-	        // Returned::dispatch($user_id, $title, $data)->onQueue('processing');
-	        SendNotifAdmin::dispatch($user_id, $title, $data, 'take-request', 'take request')->onQueue('processing');
+		if($orderTake) {
+			$title = "user " . $orderTake->first_name . " " . $orderTake->last_name . ", take request no order " . $orderTake->id_name;
+	        SendNotifAdmin::dispatch($take_id, $title, $orderTake, 'take-request', 'take request')->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}

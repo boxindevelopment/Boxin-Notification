@@ -16,15 +16,15 @@ class SendNotifAdmin implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $user_id;
+    protected $id;
     protected $title;
     protected $data;
     protected $type;
     protected $types;
 
-    public function __construct($user_id, $title, $data, $type, $types)
+    public function __construct($id, $title, $data, $type, $types)
     {
-        $this->user_id = $user_id;
+        $this->id = $id;
         $this->title = $title;
         $this->data = $data;
         $this->type = $type;
@@ -39,8 +39,6 @@ class SendNotifAdmin implements ShouldQueue
     public function handle()
     {
 
-        $userDevices = UserDevice::where('user_id', $this->user_id)->get();
-        $token = $userDevices->pluck('token');
         $token = UserDevice::where('device', 'web')->get()->pluck('token');
         if($token){
             $params = [];
@@ -56,12 +54,12 @@ class SendNotifAdmin implements ShouldQueue
                     $dataNotifAdmin['type'] = $this->types;
                     $dataNotifAdmin['title'] = $this->title;
                     $dataNotifAdmin['user_id'] = $vAdmin->id;
-                    $dataNotifAdmin['send_user'] = $this->user_id;
+                    $dataNotifAdmin['send_user'] = $this->id;
                     if($this->data){
                         if($this->data[0]){
                             $dataNotifAdmin['order_id'] = $this->data[0]->order->id;
                         } else {
-                            $dataNotifAdmin['order_id'] = $this->data->order->id;
+                            $dataNotifAdmin['order_id'] = $this->data->order_detail_id;
                         }
                     }
                     $dataNotifAdmin['notifiable_type'] = 'admin';
