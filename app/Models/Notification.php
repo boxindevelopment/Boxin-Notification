@@ -16,6 +16,7 @@ class Notification extends Model
         'title',
         'notifiable_id',
         'data',
+        'send_user',
     ];
 
     /**
