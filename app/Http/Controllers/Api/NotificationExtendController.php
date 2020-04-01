@@ -44,7 +44,7 @@ class NotificationExtendController extends Controller {
 
 			$data = OrderDetailResource::collection($orderDetails);
 			$title = "user " . $orderDetails[0]->first_name . " " . $orderDetails[0]->last_name . ", extend request no order " . $orderDetails[0]->id_name;
-	        SendNotifAdmin::dispatch($request->order_detail_id, $title, $data, 'extend-request', 'extend request')->onQueue('processing');
+	        SendNotifAdmin::dispatch($request->extend_order_id, $title, $data, 'extend-request', 'extend request')->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}
