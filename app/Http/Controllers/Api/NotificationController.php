@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Notification;
 use Validator;
+use DB;
 
 class NotificationController extends Controller
 {
@@ -27,7 +28,12 @@ class NotificationController extends Controller
 
         try {
 
-            $notification = Notification::where('user_id', $users->id)->orderBy('created_at', 'desc')->paginate(15);
+            $notification = Notification::select("notifications.*", DB::raw("transaction_logs.id as transaction_id"), DB::raw("orders.voucher_id as voucher_id"))
+                                            ->leftJoin('transaction_logs', 'transaction_logs.order_id', '=', 'notifications.order_id')
+                                            ->leftJoin('orders', 'orders.id', '=', 'notifications.order_id')
+                                            ->where('notifications.user_id', $users->id)
+                                            ->orderBy('notifications.created_at', 'desc')
+                                            ->paginate(15);
             // return response()->json($notification);
             return NotificationResource::collection($notification);
 
