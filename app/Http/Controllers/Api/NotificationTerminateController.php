@@ -68,7 +68,6 @@ class NotificationTerminateController extends Controller {
                 'message' => 'status_id required only number 16 dan 28'
 			], 422);
 		}
-
 		$status = ($request->status_id == 16) ? 'Terminate Requested' : 'Terminated';
 
 		$terminate =  ReturnBoxes::select('return_boxes.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'order_details.order_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
