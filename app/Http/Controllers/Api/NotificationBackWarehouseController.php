@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\OrderDetail;
 use App\Http\Resources\OrderDetailResource;
 use App\Jobs\Notif\SendNotifAdmin;
 use App\Jobs\Notif\SendNotifUser;
@@ -80,9 +81,14 @@ class NotificationBackWarehouseController extends Controller {
 						            ->where('order_back_warehouses.id', $return_id)
 						            ->first();
 		if($orderBackWarehouse) {
+			$orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+										->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+										->where('order_details.id', $request->order_detail_id)
+										->get();
+			$data = OrderDetailResource::collection($orderDetails);
 			$boxSpaces = ($orderBackWarehouse->types_of_box_room_id == 1) ? 'box' : 'space';
 			$title = "no order " . $orderBackWarehouse->id_name . ", status return ".$boxSpaces." is " . $status;
-	        SendNotifUser::dispatch($orderBackWarehouse->user_id, $title, $orderBackWarehouse, 'return-' . $status, 'return ' . $status)->onQueue('processing');
+	        SendNotifUser::dispatch($orderBackWarehouse->user_id, $title, $data, 'return-' . $status, 'return ' . $status)->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Jobs\Notif\SendNotifAdmin;
 use App\Jobs\Notif\SendNotifUser;
+use App\Models\OrderDetail;
+use App\Http\Resources\OrderDetailResource;
 use App\Models\ReturnBoxes;
 use DB;
 use Illuminate\Http\Request;
@@ -77,9 +79,14 @@ class NotificationTerminateController extends Controller {
 									->where('return_boxes.id', $terminate_id)
 									->first();
 		if($terminate) {
+			$orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+										->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+										->where('order_details.id', $request->order_detail_id)
+										->get();
+			$data = OrderDetailResource::collection($orderDetails);
 			$boxSpaces = ($terminate->types_of_box_room_id == 16) ? 'Terminate Requested' : 'Terminated';
 			$title = "no order " . $terminate->id_name . ", status terminate " . $boxSpaces . " is " . $status;
-	        SendNotifUser::dispatch($terminate->user_id, $title, $terminate, 'terminate-' . $status, 'terminate ' . $status)->onQueue('processing');
+	        SendNotifUser::dispatch($terminate->user_id, $title, $data, 'terminate-' . $status, 'terminate ' . $status)->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}

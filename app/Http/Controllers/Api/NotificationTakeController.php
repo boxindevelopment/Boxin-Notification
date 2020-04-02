@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\OrderDetail;
 use App\Http\Resources\OrderDetailResource;
 use App\Jobs\Notif\SendNotifAdmin;
 use App\Jobs\Notif\SendNotifUser;
@@ -78,8 +79,13 @@ class NotificationTakeController extends Controller {
 						            ->where('order_takes.id', $take_id)
 						            ->first();
 		if($orderTake) {
+			$orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+										->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+										->where('order_details.id', $request->order_detail_id)
+										->get();
+			$data = OrderDetailResource::collection($orderDetails);
 			$title = "no order " . $orderTake->id_name . ", status take request is " . $status;
-	        SendNotifUser::dispatch($orderTake->user_id, $title, $orderTake, 'take-' . $status, 'take ' . $status)->onQueue('processing');
+	        SendNotifUser::dispatch($orderTake->user_id, $title, $data, 'take-' . $status, 'take ' . $status)->onQueue('processing');
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}
