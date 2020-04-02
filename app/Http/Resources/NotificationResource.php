@@ -20,6 +20,8 @@ class NotificationResource extends Resource
             'type'              => $this->type,
             'notifiable_type'   => $this->notifiable_type,
             'order_id'          => $this->order_id,
+            'transaction_id'    => $this->transaction_id,
+            'voucher_id'        => $this->voucher_id,
             'notifiable_id'     => $this->notifiable_id,
             'title'             => $this->title,
             'data'              => json_decode($this->data),
