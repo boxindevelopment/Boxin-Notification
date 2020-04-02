@@ -50,6 +50,11 @@ Route::group(['namespace' => 'Api'], function () {
     Route::post('/contact', ['uses' => 'ContactController@store', 'as' => 'api.contact.store']);
     Route::post('/cron-minutes', ['uses' => 'CronController@minutes', 'as' => 'api.cron.minutes']);
     Route::post('/cron-days', ['uses' => 'CronController@days', 'as' => 'api.cron.days']);
+    
+    Route::post('/pickup/status/{pickup_id}', ['uses' => 'NotificationPickupController@status', 'as' => 'api.notification.pickup.take']);
+    Route::post('/take/status/{take_id}', ['uses' => 'NotificationTakeController@status', 'as' => 'api.notification.take.status']);
+    Route::post('/return/status/{return_id}', ['uses' => 'NotificationBackWarehouseController@status', 'as' => 'api.notification.backwarehouse.status']);
+    Route::post('/terminate/status/{terminate_id}', ['uses' => 'NotificationTerminateController@status', 'as' => 'api.notification.terminate.status']);
 
     Route::post('/create-voucher', ['uses' => 'NotificationVoucherController@createvoucher', 'as' => 'api.notification.create.voucher']);
 });
