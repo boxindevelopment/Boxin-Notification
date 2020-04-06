@@ -42,6 +42,15 @@ class VoucherCreate implements ShouldQueue
         $token = [];
         foreach($userDevices as $value){
             $token = $value->pluck('token');
+            
+            $dataNotif['type'] = 'Voucher';
+            $dataNotif['title'] = $this->title;
+            $dataNotif['user_id'] = $value['user_id'];
+            $dataNotif['notifiable_type'] = 'Voucher';
+            $dataNotif['notifiable_id'] = $value['user_id'];
+            $dataNotif['data'] = json_encode(['type' => 'Voucher','detail' => ['message' => $this->title, 'name' => $this->name, 
+            'code' => $this->code, 'id' => $this->id] ]);
+            Notification::create($dataNotif);
         }
         if($token){
             $params = [];
@@ -52,14 +61,6 @@ class VoucherCreate implements ShouldQueue
                 'message' => $this->title,'name' => $this->name ,'code' => $this->code, 'id' => $this->id
             ] ]));
             OneSignal::sendNotificationCustom($params);
-            $dataNotif['type'] = 'Voucher';
-            $dataNotif['title'] = $this->title;
-            $dataNotif['user_id'] = $value['user_id'];
-            $dataNotif['notifiable_type'] = 'Voucher';
-            $dataNotif['notifiable_id'] = $value['user_id'];
-            $dataNotif['data'] = json_encode(['type' => 'Voucher','detail' => ['message' => $this->title, 'name' => $this->name, 
-            'code' => $this->code, 'id' => $this->id] ]);
-            Notification::create($dataNotif);
             return $token;
         } else {
             return false;
