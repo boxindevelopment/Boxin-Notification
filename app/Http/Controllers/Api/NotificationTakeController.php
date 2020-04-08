@@ -89,4 +89,33 @@ class NotificationTakeController extends Controller {
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}
+
+	public function request(Request $request, $take_id)
+	{
+
+        $validator = \Validator::make($request->all(), [
+            'order_detail_id'   => 'required',
+        ]);
+
+        if($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ]);
+        }
+		$orderTake =  OrderTake::select('order_takes.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
+                                    ->leftJoin('order_details', 'order_details.id', '=', 'order_takes.order_detail_id')
+                                    ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                    ->leftJoin('users', 'users.id', '=', 'orders.user_id')
+						            ->where('order_takes.id', $take_id)
+						            ->first();
+		if($orderTake) {
+			$boxSpace = ($orderTake->types_of_box_room_id == 1) ? 'boxes' : 'space';
+			$date = date("d/m/Y", strtotime($orderTake->date));
+			$time = $orderTake->time;
+			$title = "Customer " . $orderTake->first_name . " " . $orderTake->last_name . ", make a request to take the  " . $boxSpace . ' order '. $orderTake->id_name . ' on ' . $date . ' at ' . substr($time, 0, 5);
+	        SendNotifAdmin::dispatch($take_id, $title, $orderTake, 'reminder-take-request', 'a reminder take request')->onQueue('processing');
+			return response()->json(['status' => 'success', 'message' => $title], 200);
+		}
+	}
 }

@@ -92,4 +92,36 @@ class NotificationBackWarehouseController extends Controller {
 			return response()->json(['status' => 'success', 'message' => $title], 200);
 		}
 	}
+
+	public function request(Request $request, $return_id)
+	{
+
+        $validator = \Validator::make($request->all(), [
+            'order_detail_id'   => 'required',
+        ]);
+
+        if($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => $validator->errors()
+            ]);
+        }
+		$orderBackWarehouse =  OrderBackWarehouse::select('order_back_warehouses.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
+                                    ->leftJoin('order_details', 'order_details.id', '=', 'order_back_warehouses.order_detail_id')
+                                    ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                    ->leftJoin('users', 'users.id', '=', 'orders.user_id')
+						            ->where('order_back_warehouses.id', $return_id)
+						            ->first();
+
+		if($orderBackWarehouse) {
+
+			$boxSpace = ($orderBackWarehouse->types_of_box_room_id == 1) ? 'boxes' : 'space';
+			$date = date("d/m/Y", strtotime($orderBackWarehouse->date));
+			$time = $orderBackWarehouse->time;
+			$title = "Customer " . $orderBackWarehouse->first_name . " " . $orderBackWarehouse->last_name . ", make a request to return the  " . $boxSpace . ' order '. $orderBackWarehouse->id_name . ' on ' . $date . ' at ' . substr($time, 0, 5);
+	        SendNotifAdmin::dispatch($return_id, $title, $orderBackWarehouse, 'reminder-return-request', 'a reminder return request')->onQueue('processing');
+			return response()->json(['status' => 'success', 'message' => $title], 200);
+		}
+	}
+
 }

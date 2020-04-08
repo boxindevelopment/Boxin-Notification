@@ -55,6 +55,10 @@ Route::group(['namespace' => 'Api'], function () {
     Route::post('/take/status/{take_id}', ['uses' => 'NotificationTakeController@status', 'as' => 'api.notification.take.status']);
     Route::post('/return/status/{return_id}', ['uses' => 'NotificationBackWarehouseController@status', 'as' => 'api.notification.backwarehouse.status']);
     Route::post('/terminate/status/{terminate_id}', ['uses' => 'NotificationTerminateController@status', 'as' => 'api.notification.terminate.status']);
-
+    
     Route::post('/create-voucher', ['uses' => 'NotificationVoucherController@createvoucher', 'as' => 'api.notification.create.voucher']);
+
+    Route::post('/take/request/{take_id}', ['uses' => 'NotificationTakeController@request', 'as' => 'api.notification.take.request']);
+    Route::post('/backwarehouse/request/{take_id}', ['uses' => 'NotificationBackWarehouseController@request', 'as' => 'api.notification.backwarehouse.request']);
+    Route::post('/terminate/request/{take_id}', ['uses' => 'NotificationTerminateController@request', 'as' => 'api.notification.terminate.request']);
 });
