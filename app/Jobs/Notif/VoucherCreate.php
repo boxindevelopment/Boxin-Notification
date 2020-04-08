@@ -11,6 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Log;
 use OneSignal;
+use DB;
 
 class VoucherCreate implements ShouldQueue
 {
@@ -43,6 +44,19 @@ class VoucherCreate implements ShouldQueue
         foreach($userDevices as $value){
             $token = $value->pluck('token');
         }
+
+        $dataSave = DB::select("SELECT DISTINCT(user_id) FROM user_devices WHERE device <> 'web'");
+        foreach($dataSave as $val){
+            $dataNotif['type'] = 'Voucher';
+            $dataNotif['title'] = $this->title;
+            $dataNotif['user_id'] = $val->user_id;
+            $dataNotif['notifiable_type'] = 'Voucher';
+            $dataNotif['notifiable_id'] = $val->user_id;
+            $dataNotif['data'] = json_encode(['type' => 'Voucher','detail' => ['message' => $this->title, 'name' => $this->name, 
+                'code' => $this->code, 'id' => $this->id] ]);
+            Notification::create($dataNotif);
+        }
+
         if($token){
             $params = [];
             $params['include_player_ids'] = $token;
@@ -52,13 +66,6 @@ class VoucherCreate implements ShouldQueue
                 'message' => $this->title,'name' => $this->name ,'code' => $this->code, 'id' => $this->id
             ] ]));
             OneSignal::sendNotificationCustom($params);
-            $dataNotif['type'] = 'Voucher';
-            $dataNotif['title'] = $this->title;
-            $dataNotif['user_id'] = $value['user_id'];
-            $dataNotif['notifiable_type'] = 'Voucher';
-            $dataNotif['notifiable_id'] = $value['user_id'];
-            $dataNotif['data'] = json_encode(['type' => 'Voucher','detail' => ['message' => $this->title, 'name' => $this->name] ]);
-            Notification::create($dataNotif);
             return $token;
         } else {
             return false;
