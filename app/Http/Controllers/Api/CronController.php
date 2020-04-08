@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Jobs\Notif\ConfirmPayment;
 use App\Jobs\Notif\SendNotif;
+use App\Jobs\Notif\SendNotifAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
 use App\Models\Order;
@@ -11,6 +12,9 @@ use App\Models\OrderDetail;
 use App\Models\PickupOrder;
 use App\Models\Box;
 use App\Models\SpaceSmall;
+use App\Models\OrderTake;
+use App\Models\ReturnBoxes;
+use App\Models\OrderBackWarehouse;
 use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
@@ -135,5 +139,77 @@ class CronController extends Controller
             }
 			return response()->json(['status' => 'success', 'message' => $title], 200);
         }
+
+
+        
+        $dateTake = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $orderTake = OrderTake::select('order_takes.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
+                          ->leftJoin('order_details', 'order_details.id', '=', 'order_takes.order_detail_id')
+                          ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                          ->leftJoin('users', 'users.id', '=', 'orders.user_id')
+                          ->where('order_takes.date', $dateTake)
+                          ->where('order_takes.status_id', 27)
+                          ->whereNull('order_takes.notif')
+                          ->orderBy('order_takes.id', 'asc')
+                          ->first();
+        if($orderTake) {
+            $boxSpace = ($orderTake->types_of_box_room_id == 1) ? 'boxes' : 'space';
+            $date = date("d/m/Y", strtotime($orderTake->date));
+            $time = $orderTake->time;
+            $title = "Customer " . $orderTake->first_name . " " . $orderTake->last_name . ", make a request to take the  " . $boxSpace . ' order '. $orderTake->id_name . ' on ' . $date . ' at ' . substr($time, 0, 5);
+            SendNotifAdmin::dispatch($orderTake->id, $title, $orderTake, 'reminder-take-request', 'a reminder take request')->onQueue('processing');
+            $orderTake->notif = 1;
+            $orderTake->save();
+            return response()->json(['status' => 'success', 'message' => $title], 200);
+        }
+
+
+
+        $dateBackWarehouse = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $orderBackWarehouse =  OrderBackWarehouse::select('order_back_warehouses.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
+                                    ->leftJoin('order_details', 'order_details.id', '=', 'order_back_warehouses.order_detail_id')
+                                    ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                    ->leftJoin('users', 'users.id', '=', 'orders.user_id')
+                                    ->where('order_back_warehouses.date', $dateBackWarehouse)
+                                    ->where('order_back_warehouses.status_id', 26)
+                                    ->whereNull('order_back_warehouses.notif')
+                                    ->orderBy('order_back_warehouses.id', 'asc')
+									->first();
+		if($orderBackWarehouse) {
+
+			$boxSpace = ($orderBackWarehouse->types_of_box_room_id == 1) ? 'boxes' : 'space';
+			$date = date("d/m/Y", strtotime($orderBackWarehouse->date));
+			$time = $orderBackWarehouse->time;
+			$title = "Customer " . $orderBackWarehouse->first_name . " " . $orderBackWarehouse->last_name . ", make a request to return the  " . $boxSpace . ' order '. $orderBackWarehouse->id_name . ' on ' . $date . ' at ' . substr($time, 0, 5);
+            SendNotifAdmin::dispatch($orderBackWarehouse->id, $title, $orderBackWarehouse, 'reminder-return-request', 'a reminder return request')->onQueue('processing');
+            $orderBackWarehouse->notif = 1;
+            $orderBackWarehouse->save();
+            return response()->json(['status' => 'success', 'message' => $title], 200);
+            
+        }
+        
+
+
+        $dateTerminate = Carbon::now('Asia/Jakarta')->format('Y-m-d');
+        $terminate =  ReturnBoxes::select('return_boxes.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
+									->leftJoin('order_details', 'order_details.id', '=', 'return_boxes.order_detail_id')
+									->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+									->leftJoin('users', 'users.id', '=', 'orders.user_id')
+                                    ->where('return_boxes.date', $dateTerminate)
+                                    ->where('return_boxes.status_id', 16)
+                                    ->whereNull('return_boxes.notif')
+                                    ->orderBy('return_boxes.id', 'asc')
+									->first();
+		if($terminate) {
+			$boxSpace = ($terminate->types_of_box_room_id == 1) ? 'boxes' : 'space';
+			$date = date("d/m/Y", strtotime($terminate->date));
+			$time = $terminate->time;
+			$title = "Customer " . $terminate->first_name . " " . $terminate->last_name . ", make a request to terminate the  " . $boxSpace . ' order '. $terminate->id_name . ' on ' . $date . ' at ' . substr($time, 0, 5);
+            SendNotifAdmin::dispatch($terminate->id, $title, $terminate, 'reminder-terminate-request', 'a reminder terminate request')->onQueue('processing');
+            $terminate->notif = 1;
+            $terminate->save();
+			return response()->json(['status' => 'success', 'message' => $title], 200);
+		}
+
     }
 }
