@@ -54,6 +54,7 @@ Route::group(['namespace' => 'Api'], function () {
     Route::post('/cron/take', ['uses' => 'CronController@takeBoxes', 'as' => 'api.cron.takeBoxes']);
     Route::post('/cron/return', ['uses' => 'CronController@returnBoxes', 'as' => 'api.cron.returnBoxes']);
     Route::post('/cron/terminate', ['uses' => 'CronController@terminate', 'as' => 'api.cron.terminate']);
+    Route::post('/cron/pickup-order', ['uses' => 'CronController@pickupOrder', 'as' => 'api.cron.pickupOrder']);
     
     Route::post('/pickup/status/{pickup_id}', ['uses' => 'NotificationPickupController@status', 'as' => 'api.notification.pickup.take']);
     Route::post('/take/status/{take_id}', ['uses' => 'NotificationTakeController@status', 'as' => 'api.notification.take.status']);
