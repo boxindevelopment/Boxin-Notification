@@ -48,7 +48,6 @@ class CronController extends Controller
                 $no = 0;
                 foreach ($orders as $k => $v) {
                     $no++;
-                    Log::info('Order ID:' . $v->id);
                     //Status cancelled orders
                     $v->status_id = 24;
                     $v->save();
@@ -145,6 +144,8 @@ class CronController extends Controller
 
     public function takeBoxes(Request $request)
     {
+        $dateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i');
+        Log::info('Take Data Time' . $dateTime);
         
         $dateTake = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $orderTakes = OrderTake::select('order_takes.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
@@ -173,6 +174,8 @@ class CronController extends Controller
 
     public function returnBoxes(Request $request)
     {
+        $dateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i');
+        Log::info('Return Data Time' . $dateTime);
         
         $dateBackWarehouse = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $orderBackWarehouses =  OrderBackWarehouse::select('order_back_warehouses.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
@@ -202,6 +205,8 @@ class CronController extends Controller
 
     public function terminate(Request $request)
     {
+        $dateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i');
+        Log::info('Terminate Data Time' . $dateTime);
         $dateTerminate = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $terminates =  ReturnBoxes::select('return_boxes.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
 									->leftJoin('order_details', 'order_details.id', '=', 'return_boxes.order_detail_id')
