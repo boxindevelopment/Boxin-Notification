@@ -14,6 +14,7 @@ use App\Models\Box;
 use App\Models\SpaceSmall;
 use App\Models\OrderTake;
 use App\Models\ReturnBoxes;
+use App\Models\ReturnBoxPayment;
 use App\Models\OrderBackWarehouse;
 use Carbon\Carbon;
 use DB;
@@ -95,6 +96,179 @@ class CronController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Order Count : ' . count($orders), 'order' => $orders], 200);
     }
 
+    public function minuteTakes(Request $request)
+    {
+        $now = Carbon::now('Asia/Jakarta');
+        $beforeDay = $now->addMinutes('-60')->format('Y-m-d H:i:s');
+        $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
+        $query  = OrderTake::query();
+        $query->with('order_detail', 'order_take_payment');
+        $query->where('status_id', 14);
+        $query->where('created_at', '<', $beforeDay);
+        $query->limit(4);
+        $takes = $query->get();
+        DB::beginTransaction();
+        try {
+            if(count($takes) > 0){
+                $no = 0;
+                foreach ($takes as $k => $v) {
+                    $no++;
+                    //Status cancelled orders
+                    $v->status_id = 24;
+                    $v->save();
+
+                    foreach ($v->order_take_payment as $key => $d) {
+                        //Status cancelled order detail
+                        $d->status_id = 24;
+                        $d->save();
+                    }
+
+                    //Status cancelled order pickup
+                    $v->order_detail->status_id = 4;
+                    $v->order_detail->save();
+
+                    if($v->order_detail){
+                        $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+                                                    ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                                    ->where('order_details.id', $v->order_detail->id)
+                                                    ->get();
+                        if(count($orderDetails) > 0) {
+                            $data = OrderDetailResource::collection($orderDetails);
+                            $title = 'Your payment has been rejected';
+                            SendNotif::dispatch($v->user_id, $title, $data, 'confirm-payment-rejected', 'confirm payment rejected')->onQueue('processing');
+                        }
+                    }
+                }
+                DB::commit();
+            } else {
+                return response()->json(['status' => 'error', 'message' => 'No Order'], 402);
+            }
+        } catch (Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'status' =>false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+        return response()->json(['status' => 'success', 'message' => 'Order Take Count : ' . count($takes), 'order' => $takes], 200);
+    }
+
+    public function minuteReturn(Request $request)
+    {
+        $now = Carbon::now('Asia/Jakarta');
+        $beforeDay = $now->addMinutes('-60')->format('Y-m-d H:i:s');
+        $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
+        $query  = OrderBackWarehouse::query();
+        $query->with('order_detail', 'order_back_warehouse_payment');
+        $query->where('status_id', 14);
+        $query->where('created_at', '<', $beforeDay);
+        $query->limit(4);
+        $returnBoxes = $query->get();
+        DB::beginTransaction();
+        try {
+            if(count($returnBoxes) > 0){
+                $no = 0;
+                foreach ($returnBoxes as $k => $v) {
+                    $no++;
+                    //Status cancelled orders
+                    $v->status_id = 24;
+                    $v->save();
+
+                    foreach ($v->order_back_warehouse_payment as $key => $d) {
+                        //Status cancelled order detail
+                        $d->status_id = 24;
+                        $d->save();
+                    }
+
+                    //Status cancelled order pickup
+                    $v->order_detail->status_id = 4;
+                    $v->order_detail->save();
+
+                    if($v->order_detail){
+                        $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+                                                    ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                                    ->where('order_details.id', $v->order_detail->id)
+                                                    ->get();
+                        if(count($orderDetails) > 0) {
+                            $data = OrderDetailResource::collection($orderDetails);
+                            $title = 'Your payment has been rejected';
+                            SendNotif::dispatch($v->user_id, $title, $data, 'confirm-payment-rejected', 'confirm payment rejected')->onQueue('processing');
+                        }
+                    }
+                }
+                DB::commit();
+            } else {
+                return response()->json(['status' => 'error', 'message' => 'No Order'], 402);
+            }
+        } catch (Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'status' =>false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+        return response()->json(['status' => 'success', 'message' => 'Order return Count : ' . count($returnBoxes), 'data' => $returnBoxes], 200);
+    }
+
+    public function minuteTerminate(Request $request)
+    {
+        $now = Carbon::now('Asia/Jakarta');
+        $beforeDay = $now->addMinutes('-60')->format('Y-m-d H:i:s');
+        $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
+        $query  = ReturnBoxes::query();
+        $query->with('order_detail.order');
+        $query->where('status_id', 14);
+        $query->where('created_at', '<', $beforeDay);
+        $query->limit(4);
+        $terminateBoxes = $query->get();
+        DB::beginTransaction();
+        try {
+            if(count($terminateBoxes) > 0){
+                $no = 0;
+                foreach ($terminateBoxes as $k => $v) {
+                    $no++;
+                    //Status cancelled orders
+                    $v->status_id = 24;
+                    $v->save();
+
+                    $returnBoxPayment = ReturnBoxPayment::where('order_detail_id', $v->order_detail_id)->get();
+                    if(count($returnBoxPayment) > 0){
+                        foreach ($returnBoxPayment as $key => $d) {
+                            $d->status_id = 24;
+                            $d->save();
+                        }
+                    }
+
+                    //Status cancelled order pickup
+                    $v->order_detail->status_id = 4;
+                    $v->order_detail->save();
+
+                    if($v->order_detail){
+                        $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+                                                    ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                                    ->where('order_details.id', $v->order_detail->id)
+                                                    ->get();
+                        if(count($orderDetails) > 0) {
+                            $data = OrderDetailResource::collection($orderDetails);
+                            $title = 'Your payment has been rejected';
+                            SendNotif::dispatch($v->order_detail->order->user_id, $title, $data, 'confirm-payment-rejected', 'confirm payment rejected')->onQueue('processing');
+                        }
+                    }
+                }
+                DB::commit();
+            } else {
+                return response()->json(['status' => 'error', 'message' => 'No Order Terminate'], 402);
+            }
+        } catch (Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'status' =>false,
+                'message' => $e->getMessage()
+            ], 401);
+        }
+        return response()->json(['status' => 'success', 'message' => 'Terminate Count : ' . count($terminateBoxes), 'data' => $terminateBoxes], 200);
+    }
+
     public function days(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
@@ -145,7 +319,6 @@ class CronController extends Controller
     public function takeBoxes(Request $request)
     {
         $dateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i');
-        Log::info('Take Data Time' . $dateTime);
         
         $dateTake = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $orderTakes = OrderTake::select('order_takes.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
@@ -153,12 +326,13 @@ class CronController extends Controller
         ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
         ->leftJoin('users', 'users.id', '=', 'orders.user_id')
         ->where('order_takes.date', $dateTake)
-                          ->where('order_takes.status_id', 27)
-                          ->whereNull('order_takes.notif')
-                          ->orderBy('order_takes.id', 'asc')
-                          ->get();
+        ->where('order_takes.status_id', 27)
+        ->whereNull('order_takes.notif')
+        ->orderBy('order_takes.id', 'asc')
+        ->get();
         if(count($orderTakes) > 0) {
             foreach($orderTakes as $orderTake){
+                Log::info($dateTake . ' Take Data Time' . $dateTime . ' ID : ' . $orderTake->id);
                 $boxSpace = ($orderTake->types_of_box_room_id == 1) ? 'boxes' : 'space';
                 $date = date("d/m/Y", strtotime($orderTake->date));
                 $time = $orderTake->time;
@@ -175,7 +349,6 @@ class CronController extends Controller
     public function returnBoxes(Request $request)
     {
         $dateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i');
-        Log::info('Return Data Time' . $dateTime);
         
         $dateBackWarehouse = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $orderBackWarehouses =  OrderBackWarehouse::select('order_back_warehouses.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
@@ -189,6 +362,7 @@ class CronController extends Controller
 									->get();
 		if(count($orderBackWarehouses) > 0) {
             foreach($orderBackWarehouses as $orderBackWarehouse){
+                Log::info($dateBackWarehouse . ' Return Data Time' . $dateTime . ' ID : ' . $orderBackWarehouse->id);
                 $boxSpace = ($orderBackWarehouse->types_of_box_room_id == 1) ? 'boxes' : 'space';
                 $date = date("d/m/Y", strtotime($orderBackWarehouse->date));
                 $time = $orderBackWarehouse->time;
@@ -206,19 +380,19 @@ class CronController extends Controller
     public function terminate(Request $request)
     {
         $dateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i');
-        Log::info('Terminate Data Time' . $dateTime);
         $dateTerminate = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $terminates =  ReturnBoxes::select('return_boxes.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
-									->leftJoin('order_details', 'order_details.id', '=', 'return_boxes.order_detail_id')
-									->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
-									->leftJoin('users', 'users.id', '=', 'orders.user_id')
-                                    ->where('return_boxes.date', $dateTerminate)
-                                    ->where('return_boxes.status_id', 16)
-                                    ->whereNull('return_boxes.notif')
-                                    ->orderBy('return_boxes.id', 'asc')
-									->get();
+        ->leftJoin('order_details', 'order_details.id', '=', 'return_boxes.order_detail_id')
+        ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+        ->leftJoin('users', 'users.id', '=', 'orders.user_id')
+        ->where('return_boxes.date', $dateTerminate)
+        ->where('return_boxes.status_id', 16)
+        ->whereNull('return_boxes.notif')
+        ->orderBy('return_boxes.id', 'asc')
+        ->get();
 		if(count($terminates) > 0) {
             foreach($terminates as $terminate){
+                Log::info($dateTerminate . 'Terminate Data Time' . $dateTime . ' ID : ' . $terminate->id);
                 $boxSpace = ($terminate->types_of_box_room_id == 1) ? 'boxes' : 'space';
                 $date = date("d/m/Y", strtotime($terminate->date));
                 $time = $terminate->time;
@@ -235,18 +409,18 @@ class CronController extends Controller
     public function pickupOrder(Request $request)
     {
         $dateTime = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i');
-        Log::info('Pickup Order Data Time' . $dateTime);
         $datePickup = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $pickupOrders =  PickupOrder::select('pickup_orders.*', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
-                                    ->leftJoin('orders', 'orders.id', '=', 'pickup_orders.order_id')
-									->leftJoin('users', 'users.id', '=', 'orders.user_id')
-                                    ->where('pickup_orders.date', $datePickup)
-                                    ->where('pickup_orders.status_id', 5)
-                                    ->whereNull('pickup_orders.notif')
-                                    ->orderBy('pickup_orders.id', 'asc')
-									->get();
+        ->leftJoin('orders', 'orders.id', '=', 'pickup_orders.order_id')
+        ->leftJoin('users', 'users.id', '=', 'orders.user_id')
+        ->where('pickup_orders.date', $datePickup)
+        ->where('pickup_orders.status_id', 5)
+        ->whereNull('pickup_orders.notif')
+        ->orderBy('pickup_orders.id', 'asc')
+        ->get();
 		if(count($pickupOrders) > 0) {
             foreach($pickupOrders as $pickupOrder){
+                Log::info($datePickup . 'Pickup Order Data Time' . $dateTime . ' ID : ' . $pickupOrder->id);
                 $date = date("d/m/Y", strtotime($pickupOrder->date));
                 $time = $pickupOrder->time;
                 $orderDetail = OrderDetail::where('order_id', $pickupOrder->order_id)->first();

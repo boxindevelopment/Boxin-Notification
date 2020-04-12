@@ -34,4 +34,9 @@ class OrderBackWarehouse extends Model
     {
         return $this->belongsTo('App\Models\Status', 'status_id', 'id');
     }
+
+    public function order_back_warehouse_payment()
+    {
+        return $this->hasMany('App\Models\OrderBackWarehousePayment', 'order_back_warehouse_id', 'id');
+    }
 }

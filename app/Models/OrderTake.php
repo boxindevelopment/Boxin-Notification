@@ -34,4 +34,9 @@ class OrderTake extends Model
     {
         return $this->belongsTo('App\Models\Status', 'status_id', 'id');
     }
+
+    public function order_take_payment()
+    {
+        return $this->hasMany('App\Models\OrderTakePayment', 'order_take_id', 'id');
+    }
 }

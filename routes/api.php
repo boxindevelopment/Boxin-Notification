@@ -48,6 +48,9 @@ Route::group(['namespace' => 'Api'], function () {
     Route::get('/payment-email/{order_id}', ['uses' => 'NotificationEmailPaymentController@send_email', 'as' => 'api.notification.email.payment']);
 
     Route::post('/contact', ['uses' => 'ContactController@store', 'as' => 'api.contact.store']);
+    Route::post('/cron-minute/take', ['uses' => 'CronController@minuteTakes', 'as' => 'api.cron.minuteTakes']);
+    Route::post('/cron-minute/return', ['uses' => 'CronController@minuteReturn', 'as' => 'api.cron.minuteReturn']);
+    Route::post('/cron-minute/terminate', ['uses' => 'CronController@minuteTerminate', 'as' => 'api.cron.minuteTerminate']);
     Route::post('/cron-minutes', ['uses' => 'CronController@minutes', 'as' => 'api.cron.minutes']);
     Route::post('/cron-days', ['uses' => 'CronController@days', 'as' => 'api.cron.days']);
 
