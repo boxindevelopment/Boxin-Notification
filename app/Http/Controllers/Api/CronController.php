@@ -99,7 +99,7 @@ class CronController extends Controller
     public function minuteTakes(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
-        $beforeDay = $now->addMinutes('-60')->format('Y-m-d H:i:s');
+        $beforeDay = $now->addMinutes('-240')->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
         $query  = OrderTake::query();
         $query->with('order_detail', 'order_take_payment');
@@ -156,7 +156,7 @@ class CronController extends Controller
     public function minuteReturn(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
-        $beforeDay = $now->addMinutes('-60')->format('Y-m-d H:i:s');
+        $beforeDay = $now->addMinutes('-240')->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
         $query  = OrderBackWarehouse::query();
         $query->with('order_detail', 'order_back_warehouse_payment');
@@ -213,7 +213,7 @@ class CronController extends Controller
     public function minuteTerminate(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
-        $beforeDay = $now->addMinutes('-60')->format('Y-m-d H:i:s');
+        $beforeDay = $now->addMinutes('-240')->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
         $query  = ReturnBoxes::query();
         $query->with('order_detail.order');
