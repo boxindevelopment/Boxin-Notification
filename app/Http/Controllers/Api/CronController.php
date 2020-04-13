@@ -8,6 +8,7 @@ use App\Jobs\Notif\SendNotifAdmin;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderDetailResource;
 use App\Models\Order;
+use App\Models\Setting;
 use App\Models\OrderDetail;
 use App\Models\PickupOrder;
 use App\Models\Box;
@@ -35,7 +36,9 @@ class CronController extends Controller
     public function minutes(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
-        $beforeDay = $now->addMinutes('-60')->format('Y-m-d H:i:s');
+        $setting = Setting::where('name', 'duration_payment_order')->first();
+        $day = $setting->value;
+        $beforeDay = $now->addHours('-' . $day)->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
         $query  = Order::query();
         $query->with('pickup_order', 'order_detail');
@@ -99,7 +102,9 @@ class CronController extends Controller
     public function minuteTakes(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
-        $beforeDay = $now->addMinutes('-240')->format('Y-m-d H:i:s');
+        $setting = Setting::where('name', 'duration_payment_take_return_terminate')->first();
+        $hour = $setting->value;
+        $beforeDay = $now->addHours('-' . $hour)->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
         $query  = OrderTake::query();
         $query->with('order_detail', 'order_take_payment');
@@ -158,7 +163,9 @@ class CronController extends Controller
     public function minuteReturn(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
-        $beforeDay = $now->addMinutes('-240')->format('Y-m-d H:i:s');
+        $setting = Setting::where('name', 'duration_payment_take_return_terminate')->first();
+        $hour = $setting->value;
+        $beforeDay = $now->addHours('-' . $hour)->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
         $query  = OrderBackWarehouse::query();
         $query->with('order_detail', 'order_back_warehouse_payment');
@@ -217,7 +224,9 @@ class CronController extends Controller
     public function minuteTerminate(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
-        $beforeDay = $now->addMinutes('-240')->format('Y-m-d H:i:s');
+        $setting = Setting::where('name', 'duration_payment_take_return_terminate')->first();
+        $hour = $setting->value;
+        $beforeDay = $now->addHours('-' . $hour)->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
         $query  = ReturnBoxes::query();
         $query->with('order_detail.order');
@@ -278,7 +287,9 @@ class CronController extends Controller
     public function days(Request $request)
     {
         $now = Carbon::now('Asia/Jakarta');
-        $beforeDay = $now->addDays('3')->format('Y-m-d H:i:s');
+        $setting = Setting::where('name', 'reminder_period_expired_box')->first();
+        $day = $setting->value;
+        $beforeDay = $now->addDays($day)->format('Y-m-d H:i:s');
         $timeNow = Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s');
         $dateNow = Carbon::now('Asia/Jakarta')->format('Y-m-d');
         $query  = OrderDetail::query();
