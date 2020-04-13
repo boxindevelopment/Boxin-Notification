@@ -128,14 +128,16 @@ class CronController extends Controller
                     $v->order_detail->save();
 
                     if($v->order_detail){
-                        $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+                        $orderDetails =  OrderDetail::select('order_details.*', 'order_takes.id as order_take_id', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
                                                     ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                                    ->leftJoin('order_takes', 'order_takes.order_detail', '=', 'order_details.id')
                                                     ->where('order_details.id', $v->order_detail->id)
+                                                    ->where('order_takes.id', $v->id)
                                                     ->get();
                         if(count($orderDetails) > 0) {
                             $data = OrderDetailResource::collection($orderDetails);
                             $title = 'Your payment has been rejected';
-                            SendNotif::dispatch($v->user_id, $title, $data, 'confirm-payment-rejected', 'confirm payment rejected')->onQueue('processing');
+                            SendNotif::dispatch($v->user_id, $title, $data, 'confirm-payment-take-rejected', 'confirm payment take rejected')->onQueue('processing');
                         }
                     }
                 }
@@ -185,14 +187,16 @@ class CronController extends Controller
                     $v->order_detail->save();
 
                     if($v->order_detail){
-                        $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+                        $orderDetails =  OrderDetail::select('order_details.*', 'order_back_warehouses.id as order_back_warehouse_id', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
                                                     ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                                    ->leftJoin('order_back_warehouses', 'order_back_warehouses.order_detail_id', '=', 'order_details.id')
                                                     ->where('order_details.id', $v->order_detail->id)
+                                                    ->where('order_back_warehouses.id', $v->id)
                                                     ->get();
                         if(count($orderDetails) > 0) {
                             $data = OrderDetailResource::collection($orderDetails);
                             $title = 'Your payment has been rejected';
-                            SendNotif::dispatch($v->user_id, $title, $data, 'confirm-payment-rejected', 'confirm payment rejected')->onQueue('processing');
+                            SendNotif::dispatch($v->user_id, $title, $data, 'confirm-payment-return-boxes-rejected', 'confirm payment return boxes rejected')->onQueue('processing');
                         }
                     }
                 }
@@ -244,14 +248,16 @@ class CronController extends Controller
                     $v->order_detail->save();
 
                     if($v->order_detail){
-                        $orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
+                        $orderDetails =  OrderDetail::select('order_details.*', 'return_boxes.id as return_boxe_id', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
                                                     ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
+                                                    ->leftJoin('return_boxes', 'return_boxes.order_detail_id', '=', 'order_details.id')
                                                     ->where('order_details.id', $v->order_detail->id)
+                                                    ->where('return_boxes.id', $v->id)
                                                     ->get();
                         if(count($orderDetails) > 0) {
                             $data = OrderDetailResource::collection($orderDetails);
                             $title = 'Your payment has been rejected';
-                            SendNotif::dispatch($v->order_detail->order->user_id, $title, $data, 'confirm-payment-rejected', 'confirm payment rejected')->onQueue('processing');
+                            SendNotif::dispatch($v->order_detail->order->user_id, $title, $data, 'confirm-payment-terminate-rejected', 'confirm payment terminate rejected')->onQueue('processing');
                         }
                     }
                 }
