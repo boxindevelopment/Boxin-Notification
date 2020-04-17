@@ -14,7 +14,12 @@ class NotificationResource extends Resource
      */
     public function toArray($request)
     {
-
+        $data =json_decode($this->data);
+        if(is_array($data->detail->data)){
+            $data->detail->data = $data->detail->data[0];
+        } else {
+            $data->detail->data = $data->detail->data;
+        }
         return [
             'id'                => $this->id,
             'type'              => $this->type,
@@ -24,7 +29,7 @@ class NotificationResource extends Resource
             'voucher_id'        => $this->voucher_id,
             'notifiable_id'     => $this->notifiable_id,
             'title'             => $this->title,
-            'data'              => json_decode($this->data),
+            'data'              => $data,
             'created_at'        => $this->created_at,
         ];
     }
