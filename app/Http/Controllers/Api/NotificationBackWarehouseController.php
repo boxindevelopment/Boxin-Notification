@@ -83,9 +83,9 @@ class NotificationBackWarehouseController extends Controller {
 		if($orderBackWarehouse) {
 			$orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
 										->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
-										->where('order_details.id', $request->order_detail_id)
-										->get();
-			$data = OrderDetailResource::collection($orderDetails);
+										->where('order_details.id', $orderBackWarehouse->order_detail_id)
+										->first();
+			$data = New OrderDetailResource($orderDetails);
 			$boxSpaces = ($orderBackWarehouse->types_of_box_room_id == 1) ? 'box' : 'space';
 			$title = "no order " . $orderBackWarehouse->id_name . ", status return ".$boxSpaces." is " . $status;
 	        SendNotifUser::dispatch($orderBackWarehouse->user_id, $title, $data, 'return-' . $status, 'return ' . $status)->onQueue('processing');

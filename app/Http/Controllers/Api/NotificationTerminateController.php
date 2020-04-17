@@ -81,9 +81,9 @@ class NotificationTerminateController extends Controller {
 		if($terminate) {
 			$orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
 										->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
-										->where('order_details.id', $request->order_detail_id)
-										->get();
-			$data = OrderDetailResource::collection($orderDetails);
+										->where('order_details.id', $terminate->order_detail_id)
+										->first();
+			$data = New OrderDetailResource($orderDetails);
 			$boxSpaces = ($terminate->types_of_box_room_id == 16) ? 'Terminate Requested' : 'Terminated';
 			$title = "no order " . $terminate->id_name . ", status terminate " . $boxSpaces . " is " . $status;
 	        SendNotifUser::dispatch($terminate->user_id, $title, $data, 'terminate-' . $status, 'terminate ' . $status)->onQueue('processing');
