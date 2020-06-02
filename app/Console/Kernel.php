@@ -13,8 +13,16 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        '\App\Console\Commands\NotifReminderPaymentSchedule',
-        '\App\Console\Commands\ExpiredBox',
+        // '\App\Console\Commands\NotifReminderPaymentSchedule',
+        // '\App\Console\Commands\ExpiredBox',
+        '\App\Console\Commands\RejectedStatusPending',
+        '\App\Console\Commands\RejectedReturn',
+        '\App\Console\Commands\RejectedTerminate',
+        '\App\Console\Commands\CronPickup',
+        '\App\Console\Commands\CronExpiredBox',
+        '\App\Console\Commands\CronReturnBox',
+        '\App\Console\Commands\CronTakeBox',
+        '\App\Console\Commands\CronTerminateBox',
     ];
 
     /**
@@ -25,8 +33,16 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('Notif:ReminderPayment')->everyMinute();
-        $schedule->command('Notif:ExpiredBox')->everyMinute();
+        // $schedule->command('Notif:ReminderPayment')->everyMinute();
+        // $schedule->command('Notif:ExpiredBox')->everyMinute();
+        $schedule->command('status:reject')->everyFiveMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('return:reject')->everyTenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('terminate:reject')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:pickup')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:expiredBox')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:returnBox')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:takeBox')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:terminateBox')->everyFifteenMinutes()->timezone('Asia/Jakarta');
     }
 
     /**
