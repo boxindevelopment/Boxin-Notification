@@ -16,6 +16,8 @@ class Kernel extends ConsoleKernel
         // '\App\Console\Commands\NotifReminderPaymentSchedule',
         // '\App\Console\Commands\ExpiredBox',
         '\App\Console\Commands\RejectedStatusPending',
+        '\App\Console\Commands\RejectedReturn',
+        '\App\Console\Commands\RejectedTerminate',
     ];
 
     /**
@@ -28,7 +30,9 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('Notif:ReminderPayment')->everyMinute();
         // $schedule->command('Notif:ExpiredBox')->everyMinute();
-        $schedule->command('status:reject')->dailyAt('01:00')->timezone('Asia/Jakarta');
+        $schedule->command('status:reject')->everyFiveMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('return:reject')->everyTenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('terminate:reject')->everyFifteenMinutes()->timezone('Asia/Jakarta');
     }
 
     /**
