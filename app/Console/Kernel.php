@@ -19,6 +19,10 @@ class Kernel extends ConsoleKernel
         '\App\Console\Commands\RejectedReturn',
         '\App\Console\Commands\RejectedTerminate',
         '\App\Console\Commands\CronPickup',
+        '\App\Console\Commands\CronExpiredBox',
+        '\App\Console\Commands\CronReturnBox',
+        '\App\Console\Commands\CronTakeBox',
+        '\App\Console\Commands\CronTerminateBox',
     ];
 
     /**
@@ -35,6 +39,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('return:reject')->everyTenMinutes()->timezone('Asia/Jakarta');
         $schedule->command('terminate:reject')->everyFifteenMinutes()->timezone('Asia/Jakarta');
         $schedule->command('cron:pickup')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:expiredBox')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:returnBox')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:takeBox')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:terminateBox')->everyFifteenMinutes()->timezone('Asia/Jakarta');
     }
 
     /**
