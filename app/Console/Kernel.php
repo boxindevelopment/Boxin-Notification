@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
         '\App\Console\Commands\RejectedStatusPending',
         '\App\Console\Commands\RejectedReturn',
         '\App\Console\Commands\RejectedTerminate',
+        '\App\Console\Commands\CronPickup',
     ];
 
     /**
@@ -33,6 +34,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('status:reject')->everyFiveMinutes()->timezone('Asia/Jakarta');
         $schedule->command('return:reject')->everyTenMinutes()->timezone('Asia/Jakarta');
         $schedule->command('terminate:reject')->everyFifteenMinutes()->timezone('Asia/Jakarta');
+        $schedule->command('cron:pickup')->everyFifteenMinutes()->timezone('Asia/Jakarta');
     }
 
     /**
