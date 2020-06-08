@@ -11,6 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use OneSignal;
+use Log;
 
 class SendNotif implements ShouldQueue
 {
@@ -39,19 +40,24 @@ class SendNotif implements ShouldQueue
     public function handle()
     {
 
-        $userDevices = UserDevice::where('user_id', $this->user_id)->get();
+        $userDevices = UserDevice::where('user_id', $this->user_id)->whereNotNull('token')->where('token', '<>', 'null')->get();
         $token = $userDevices->pluck('token');
+	Log::info('TOken : ' . json_encode($token));
         if($token){
-            $adminTokens = UserDevice::where('device', 'web')->get()->pluck('token');
+            $adminTokens = UserDevice::where('device', 'web')->whereNotNull('token')->where('token', '<>', 'null')->get()->pluck('token');
             if($adminTokens){
                 $count = count($token);
                 foreach($adminTokens as $k => $v){
-                    $token[$count] = $v;
-                    $count++;
+		    Log::info('Token'.$count.':' . $v);
+		    if($v){
+                      $token[$count] = $v;
+                      $count++;
+		    }
                 }
             }
             $params = [];
             $params['include_player_ids'] = $token;
+	    Log::info(json_encode($token));
             $params['contents'] = ["en" => $this->title];
             $params['headings'] = ["en" => $this->title];
             $params['data'] = json_decode(json_encode(['type' => $this->type,'detail' => ['message' => $this->title, 'data' => $this->data] ]));
