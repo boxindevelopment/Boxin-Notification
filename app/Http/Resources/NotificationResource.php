@@ -15,11 +15,13 @@ class NotificationResource extends Resource
     public function toArray($request)
     {
         $data =json_decode($this->data);
-        if(is_array($data->detail->data)){
-            $data->detail->data = $data->detail->data[0];
-        } else {
-            $data->detail->data = $data->detail->data;
-        }
+	if($this->notifiable_type != 'Voucher'){
+            if(is_array($data->detail->data)){
+                $data->detail->data = $data->detail->data[0];
+            } else {
+                $data->detail->data = $data->detail->data;
+            }
+	}
         return [
             'id'                => $this->id,
             'type'              => $this->type,
