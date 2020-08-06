@@ -72,8 +72,6 @@ class NotificationBackWarehouseController extends Controller {
 			], 422);
 		}
 
-		$status = ($request->status_id == 2) ? 'On Delivery' : (($request->status_id == 26) ? 'Return Request' : 'Stored');
-
 		$orderBackWarehouse =  OrderBackWarehouse::select('order_back_warehouses.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
                                     ->leftJoin('order_details', 'order_details.id', '=', 'order_back_warehouses.order_detail_id')
                                     ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
@@ -81,6 +79,7 @@ class NotificationBackWarehouseController extends Controller {
 						            ->where('order_back_warehouses.id', $return_id)
 						            ->first();
 		if($orderBackWarehouse) {
+			$status = ($orderBackWarehouse->status_id == 2) ? 'On Delivery' : (($orderBackWarehouse->status_id == 26) ? 'Return Request' : 'Stored');
 			$orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
 										->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
 										->where('order_details.id', $orderBackWarehouse->order_detail_id)
