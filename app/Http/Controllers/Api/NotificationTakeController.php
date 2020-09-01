@@ -70,8 +70,6 @@ class NotificationTakeController extends Controller {
 			], 422);
 		}
 
-		$status = ($request->status_id == 2) ? 'On Delivery' : 'Stored';
-
 		$orderTake =  OrderTake::select('order_takes.*', 'order_details.id_name', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
                                     ->leftJoin('order_details', 'order_details.id', '=', 'order_takes.order_detail_id')
                                     ->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
@@ -79,6 +77,7 @@ class NotificationTakeController extends Controller {
 						            ->where('order_takes.id', $take_id)
 						            ->first();
 		if($orderTake) {
+			$status = ($orderTake->status_id == 2) ? 'On Delivery' : 'Stored';
 			$orderDetails =  OrderDetail::select('order_details.*', DB::raw('orders.status_id as status_id'), DB::raw('orders.user_id as user_id'), DB::raw('DATEDIFF(day, order_details.start_date, order_details.end_date) as total_time'), DB::raw('DATEDIFF(day, order_details.start_date, GETDATE()) as selisih'))
 										->leftJoin('orders', 'orders.id', '=', 'order_details.order_id')
 										->where('order_details.id', $orderTake->order_detail_id)

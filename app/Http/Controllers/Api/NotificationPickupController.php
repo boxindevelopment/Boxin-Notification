@@ -36,14 +36,15 @@ class NotificationPickupController extends Controller {
 			], 422);
 		}
 
-		$status = ($request->status_id == 2) ? 'On Delivery' : 'Stored';
-
 		$pickup =  PickupOrder::select('pickup_orders.*', 'order_details.id_name', 'order_details.types_of_box_room_id', 'order_details.order_id', 'users.first_name', 'users.last_name', DB::raw('orders.status_id as status_order_id'), DB::raw('orders.user_id as user_id'))
 									->leftJoin('orders', 'orders.id', '=', 'pickup_orders.order_id')
 									->leftJoin('order_details', 'orders.id', '=', 'order_details.order_id')
 									->leftJoin('users', 'users.id', '=', 'orders.user_id')
 									->where('pickup_orders.id', $pickup_id)
 									->first();
+
+		$status = ($pickup->status_id == 2) ? 'On Delivery' : 'Stored';
+
 		if($pickup) {
 			$title = "no order " . $pickup->id_name . ", status pickup order is " . $status;
 	        SendNotifUser::dispatch($pickup->user_id, $title, $pickup, 'pickup-' . $status, 'pickup ' . $status)->onQueue('processing');

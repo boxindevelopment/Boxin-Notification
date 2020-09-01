@@ -39,7 +39,7 @@ class SendNotifAdmin implements ShouldQueue
     public function handle()
     {
 
-        $token = UserDevice::where('device', 'web')->get()->pluck('token');
+        $token = UserDevice::where('device', 'web')->whereNotNull('token')->where('token', '<>', 'null')->get()->pluck('token');
         if($token){
             $params = [];
             $params['include_player_ids'] = $token;
