@@ -41,7 +41,7 @@ class SendNotifUser implements ShouldQueue
 
         $userDevices = UserDevice::where('user_id', $this->user_id)->get();
         $token = $userDevices->pluck('token');
-        if($token){
+        if(count($token) > 0){
             $params = [];
             $params['include_player_ids'] = $token;
             $params['contents'] = ["en" => $this->title];

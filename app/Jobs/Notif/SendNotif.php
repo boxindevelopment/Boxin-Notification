@@ -42,8 +42,7 @@ class SendNotif implements ShouldQueue
 
         $userDevices = UserDevice::where('user_id', $this->user_id)->whereNotNull('token')->where('token', '<>', 'null')->get();
         $token = $userDevices->pluck('token');
-	Log::info('TOken : ' . json_encode($token));
-        if($token){
+        if(count($token) > 0){
             $adminTokens = UserDevice::where('device', 'web')->whereNotNull('token')->where('token', '<>', 'null')->get()->pluck('token');
             if($adminTokens){
                 $count = count($token);
